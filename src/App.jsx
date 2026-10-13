@@ -89,6 +89,24 @@ const overviewMetrics = [
   { label: "Needs attention", value: "12", delta: "4 delayed orders", icon: "!", tone: "orange" },
 ];
 
+const welcomeFeatures = [
+  {
+    icon: "⌖",
+    title: "See every delivery",
+    description: "Track orders and route progress from dispatch to the final stop.",
+  },
+  {
+    icon: "↗",
+    title: "Plan smarter routes",
+    description: "Give your team the context to adapt quickly when plans change.",
+  },
+  {
+    icon: "◎",
+    title: "Keep teams in sync",
+    description: "Bring drivers, dispatchers, and customer updates into one view.",
+  },
+];
+
 function StatusBadge({ status }) {
   const className = status.toLowerCase().replaceAll(" ", "-");
   return <span className={`status-badge status-${className}`}>{status}</span>;
@@ -310,6 +328,11 @@ function WelcomeScreen({ onAuth }) {
           <BrandMark />
           <span>routeflow</span>
         </a>
+        <nav className="welcome-nav" aria-label="Main navigation">
+          <a href="#welcome-overview">Platform</a>
+          <a href="#welcome-benefits">Benefits</a>
+          <a href="#welcome-contact">Get started</a>
+        </nav>
         <div className="welcome-actions">
           <button
             className="ghost-btn"
@@ -328,79 +351,141 @@ function WelcomeScreen({ onAuth }) {
         </div>
       </header>
 
-      <main className="welcome-content">
-        <section className="welcome-copy">
-          <span className="eyebrow dark-eyebrow">
-            <span className="eyebrow-dot" />
-            YOUR DELIVERY NETWORK, IN SYNC
-          </span>
-          <h1>
-            Move every
-            <span> delivery forward.</span>
-          </h1>
-          <p>
-            Meet Routeflow: the cloud-based logistics platform that brings your
-            orders, routes, drivers, and customers together in one clear view.
-          </p>
-          <button
-            className="primary-btn welcome-cta"
-            type="button"
-            onClick={() => onAuth("login")}
-          >
-            Sign in to Routeflow
-            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path
-                d="M4 10h12m-5-5 5 5-5 5"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          <span className="welcome-caption">Smarter routes. Happier customers.</span>
+      <main>
+        <section className="welcome-content" id="welcome-overview">
+          <div className="welcome-copy">
+            <span className="eyebrow dark-eyebrow">
+              <span className="eyebrow-dot" />
+              LOGISTICS, WITHOUT THE GUESSWORK
+            </span>
+            <h1>
+              Make every mile
+              <span> work smarter.</span>
+            </h1>
+            <p>
+              Bring orders, routes, drivers, and customer updates together in one
+              clear view—and keep your operation moving when the unexpected happens.
+            </p>
+            <div className="welcome-cta-row">
+              <button
+                className="primary-btn welcome-cta"
+                type="button"
+                onClick={() => onAuth("signup")}
+              >
+                Get started
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path
+                    d="M4 10h12m-5-5 5 5-5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+              <a className="welcome-secondary-link" href="#welcome-benefits">
+                Explore the platform
+              </a>
+            </div>
+            <div className="welcome-proof">
+              <span className="proof-avatars" aria-hidden="true">
+                <span>O</span>
+                <span>D</span>
+                <span>F</span>
+              </span>
+              <span>
+                <strong>One connected operation</strong>
+                <br />
+                from the first scan to the final stop
+              </span>
+            </div>
+          </div>
+
+          <aside className="welcome-preview" aria-label="Routeflow operations preview">
+            <div className="preview-orbit orbit-one" />
+            <div className="preview-orbit orbit-two" />
+            <div className="preview-card">
+              <div className="preview-heading">
+                <span className="preview-indicator" />
+                <span>NETWORK OVERVIEW</span>
+                <span className="preview-live">LIVE</span>
+              </div>
+              <div className="preview-map" aria-hidden="true">
+                <span className="preview-route preview-route-one" />
+                <span className="preview-route preview-route-two" />
+                <span className="preview-node node-one" />
+                <span className="preview-node node-two" />
+                <span className="preview-node node-three" />
+                <span className="preview-node node-four" />
+              </div>
+              <div className="preview-summary">
+                <div>
+                  <span>Deliveries today</span>
+                  <strong>1,284</strong>
+                </div>
+                <div>
+                  <span>On-time rate</span>
+                  <strong>96.8%</strong>
+                </div>
+              </div>
+            </div>
+            <div className="preview-note">
+              <span className="preview-check">✓</span>
+              <span>
+                <strong>Route optimized</strong>
+                <small>Saving 18 minutes</small>
+              </span>
+            </div>
+          </aside>
         </section>
 
-        <aside className="welcome-preview" aria-label="Routeflow operations preview">
-          <div className="preview-orbit orbit-one" />
-          <div className="preview-orbit orbit-two" />
-          <div className="preview-card">
-            <div className="preview-heading">
-              <span className="preview-indicator" />
-              <span>NETWORK OVERVIEW</span>
-              <span className="preview-live">LIVE</span>
-            </div>
-            <div className="preview-map" aria-hidden="true">
-              <span className="preview-route preview-route-one" />
-              <span className="preview-route preview-route-two" />
-              <span className="preview-node node-one" />
-              <span className="preview-node node-two" />
-              <span className="preview-node node-three" />
-              <span className="preview-node node-four" />
-            </div>
-            <div className="preview-summary">
-              <div>
-                <span>Deliveries today</span>
-                <strong>1,284</strong>
-              </div>
-              <div>
-                <span>On-time rate</span>
-                <strong>96.8%</strong>
-              </div>
-            </div>
-          </div>
-          <div className="preview-note">
-            <span className="preview-check">✓</span>
-            <span>
-              <strong>Route optimized</strong>
-              <small>Saving 18 minutes</small>
+        <section
+          className="welcome-benefits"
+          id="welcome-benefits"
+          aria-labelledby="welcome-benefits-title"
+        >
+          <div className="welcome-benefits-heading">
+            <span className="eyebrow dark-eyebrow">
+              <span className="eyebrow-dot" />
+              CLARITY AT EVERY STEP
             </span>
+            <h2 id="welcome-benefits-title">A better view of your delivery day.</h2>
+            <p>Less time chasing updates. More time keeping every delivery on track.</p>
           </div>
-        </aside>
+          <div className="welcome-feature-grid">
+            {welcomeFeatures.map((feature, index) => (
+              <article className="welcome-feature-card" key={feature.title}>
+                <span className="welcome-feature-number">0{index + 1}</span>
+                <span className="welcome-feature-icon" aria-hidden="true">
+                  {feature.icon}
+                </span>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="welcome-contact" id="welcome-contact">
+          <div>
+            <span className="eyebrow">
+              <span className="eyebrow-dot" />
+              READY WHEN YOU ARE
+            </span>
+            <h2>Bring your delivery operation into focus.</h2>
+          </div>
+          <button
+            className="primary-btn welcome-contact-cta"
+            type="button"
+            onClick={() => onAuth("signup")}
+          >
+            Create your account <span aria-hidden="true">→</span>
+          </button>
+        </section>
       </main>
       <footer className="welcome-footer">
         <span>© 2026 Routeflow Logistics</span>
-        <span>Built for every mile.</span>
+        <a href="#welcome-overview">Back to top ↑</a>
       </footer>
     </div>
   );
