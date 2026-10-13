@@ -124,6 +124,12 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
 
   const allItems = sidebarGroups.flatMap((group) => group.items);
   const activeItem = allItems.find((item) => item.id === activeSection) ?? allItems[0];
+  const todayLabel = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date()).toUpperCase();
   const filteredOrders = orders.filter((order) => {
     const matchesSearch = `${order.id} ${order.customer} ${order.route} ${order.driver}`
       .toLowerCase()
@@ -219,10 +225,76 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
   }
 
   function renderDeliveries() {
+    const deliveryFilters = [
+      { label: "All deliveries", status: "All statuses", count: orders.length, tone: "all" },
+      {
+        label: "In transit",
+        status: "In transit",
+        count: orders.filter((order) => order.status === "In transit").length,
+        tone: "transit",
+      },
+      {
+        label: "Delivered",
+        status: "Delivered",
+        count: orders.filter((order) => order.status === "Delivered").length,
+        tone: "delivered",
+      },
+      {
+        label: "Delayed",
+        status: "Delayed",
+        count: orders.filter((order) => order.status === "Delayed").length,
+        tone: "delayed",
+      },
+    ];
+
     return (
-      <section className="ops-card deliveries-card">
+      <>
+        <section className="delivery-summary" aria-label="Delivery status summary">
+          {deliveryFilters.map((filter) => (
+            <button
+              className={`delivery-summary-card ${filter.tone}${statusFilter === filter.status ? " active" : ""}`}
+              key={filter.label}
+              type="button"
+              aria-pressed={statusFilter === filter.status}
+              onClick={() => setStatusFilter(filter.status)}
+            >
+              <span>{filter.label}</span>
+              <strong>{filter.count}</strong>
+              <span className="delivery-summary-indicator">
+                <i aria-hidden="true" />
+                {filter.status === "All statuses" ? "Across your workspace" : `View ${filter.label.toLowerCase()}`}
+              </span>
+            </button>
+          ))}
+        </section>
+        <section className="ops-card deliveries-card">
+          <div className="deliveries-card-heading">
+            <div>
+              <h2>All deliveries</h2>
+              <p>Search, assign drivers, and update delivery status.</p>
+            </div>
+            <span className="delivery-result-count">{filteredOrders.length} results</span>
+          </div>
         <div className="delivery-toolbar">
-          <label className="ops-search"><span aria-hidden="true">⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search order, customer or route" /></label>
+          <label className="ops-search">
+            <span aria-hidden="true">⌕</span>
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by order, customer, route, or driver"
+              aria-label="Search deliveries"
+            />
+            {search && (
+              <button
+                className="search-clear"
+                type="button"
+                aria-label="Clear search"
+                onClick={() => setSearch("")}
+              >
+                ×
+              </button>
+            )}
+          </label>
           <select className="ops-select" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filter by delivery status">
             {["All statuses", "Pending", "In transit", "Out for delivery", "Delivered", "Delayed"].map((status) => <option key={status}>{status}</option>)}
           </select>
@@ -231,7 +303,8 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
         <OrdersTable orders={filteredOrders} onStatusChange={updateOrderStatus} onDriverChange={assignDriver} />
         {filteredOrders.length === 0 && <p className="empty-state">No deliveries match your search. Try a different keyword or status.</p>}
         <div className="table-footer">Showing {filteredOrders.length} of {orders.length} deliveries <span>Updated just now</span></div>
-      </section>
+        </section>
+      </>
     );
   }
 
@@ -300,7 +373,46 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
           <div className="topbar-tools"><span className="system-status"><i />All systems operational</span><button className="notification-button" type="button" aria-label="Notifications" onClick={() => setNotice("You are all caught up. No new notifications.")}>♧<i /></button><span className="topbar-divider" /><button className="topbar-user" type="button" onClick={onSignOut}><span className="profile-avatar">{(accountLabel || "D").slice(0, 1).toUpperCase()}</span><span>{accountLabel || "Demo account"}</span><span>⌄</span></button></div>
         </header>
         <main className="ops-page">
-          <div className="ops-page-heading"><div><span className="ops-date">TUESDAY, OCTOBER 6, 2026</span><h1>{activeSection === "overview" ? "Good morning, " + ((accountLabel || "there").split("@")[0].split(" ")[0]) : activeItem.label}<span>{activeSection === "overview" ? "." : ""}</span></h1><p>{activeSection === "overview" ? "Here’s what’s happening across your delivery network today." : activeSection === "deliveries" ? "Create, search, assign and track every delivery in one place." : activeSection === "fleet" ? "See driver availability and manage your active routes." : "A clear view of your logistics operation."}</p></div><div className="heading-actions">{activeSection === "deliveries" && <button className="ops-primary-button" type="button" onClick={() => setShowOrderForm(true)}><span>＋</span> New delivery</button>}{activeSection === "overview" && <button className="ops-outline-button" type="button" onClick={() => setActiveSection("deliveries")}>View deliveries <span>→</span></button>}</div></div>
+          <div className="ops-page-heading">
+            <div>
+              <span className="ops-date">{todayLabel}</span>
+              <h1>
+                {activeSection === "overview"
+                  ? `Good morning, ${(accountLabel || "there").split("@")[0].split(" ")[0]}`
+                  : activeItem.label}
+                <span>{activeSection === "overview" ? "." : ""}</span>
+              </h1>
+              <p>
+                {activeSection === "overview"
+                  ? "Here’s what’s happening across your delivery network today."
+                  : activeSection === "deliveries"
+                    ? "Create, search, assign and track every delivery in one place."
+                    : activeSection === "fleet"
+                      ? "See driver availability and manage your active routes."
+                      : "A clear view of your logistics operation."}
+              </p>
+            </div>
+            <div className="heading-actions">
+              {activeSection === "deliveries" && (
+                <button
+                  className="ops-primary-button"
+                  type="button"
+                  onClick={() => setShowOrderForm(true)}
+                >
+                  <span>＋</span> New delivery
+                </button>
+              )}
+              {activeSection === "overview" && (
+                <button
+                  className="ops-outline-button"
+                  type="button"
+                  onClick={() => setActiveSection("deliveries")}
+                >
+                  View deliveries <span>→</span>
+                </button>
+              )}
+            </div>
+          </div>
           {notice && <div className="ops-notice" role="status"><span>✓</span>{notice}<button type="button" aria-label="Dismiss notification" onClick={() => setNotice("")}>×</button></div>}
           {activeSection === "overview" && renderOverview()}
           {activeSection === "deliveries" && renderDeliveries()}
