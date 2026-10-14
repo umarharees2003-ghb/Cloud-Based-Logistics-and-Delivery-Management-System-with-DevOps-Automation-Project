@@ -64,6 +64,60 @@ const sidebarGroups = [
   },
 ];
 
+const userRoles = [
+  { id: "administrator", label: "System Administrator", workspace: "Administration" },
+  { id: "logistics", label: "Logistics Manager / Operations Staff", workspace: "Operations" },
+  { id: "driver", label: "Delivery Driver / Courier", workspace: "Driver workspace" },
+  { id: "customer", label: "Customer / Sender", workspace: "Customer portal" },
+  { id: "merchant", label: "Business Client / Merchant", workspace: "Business account" },
+];
+
+const roleSidebarGroups = {
+  administrator: sidebarGroups,
+  logistics: [
+    {
+      label: "Operations",
+      items: [
+        { id: "overview", label: "Overview", icon: "⌂" },
+        { id: "deliveries", label: "Deliveries", icon: "▤" },
+        { id: "fleet", label: "Fleet management", icon: "▰" },
+        { id: "analytics", label: "Analytics & reports", icon: "▥" },
+      ],
+    },
+  ],
+  driver: [
+    {
+      label: "My work",
+      items: [
+        { id: "overview", label: "My day", icon: "⌂" },
+        { id: "deliveries", label: "My deliveries", icon: "▤" },
+        { id: "driver-route", label: "Route plan", icon: "↗" },
+      ],
+    },
+  ],
+  customer: [
+    {
+      label: "My account",
+      items: [
+        { id: "customer-tracking", label: "Track a delivery", icon: "⌖" },
+        { id: "customer-history", label: "Delivery history", icon: "▤" },
+        { id: "customer-profile", label: "My profile", icon: "♙" },
+      ],
+    },
+  ],
+  merchant: [
+    {
+      label: "Business",
+      items: [
+        { id: "overview", label: "Store overview", icon: "⌂" },
+        { id: "merchant-orders", label: "Shipments", icon: "▤" },
+        { id: "analytics", label: "Reports", icon: "▥" },
+        { id: "merchant-profile", label: "Business profile", icon: "♙" },
+      ],
+    },
+  ],
+};
+
 const initialOrders = [
   { id: "SHP-10482", customer: "Miriam Patel", route: "Newark → Brooklyn", status: "In transit", eta: "14:30", driver: "Alex Lee" },
   { id: "SHP-10481", customer: "James Liu", route: "Jersey City → Queens", status: "Delayed", eta: "14:45", driver: "Morgan Reed" },
@@ -107,13 +161,165 @@ const welcomeFeatures = [
   },
 ];
 
+const rolePhotoCollections = {
+  administrator: {
+    heading: "Your logistics network",
+    description: "A visual overview of the vehicles and facilities in your operation.",
+    photos: [
+      {
+        image: "/images/role-fleet.jpg",
+        alt: "Freight trucks travelling together on a delivery route",
+        title: "Fleet overview",
+        detail: "Vehicles moving across the network",
+      },
+      {
+        image: "/images/delivery-hub.jpg",
+        alt: "Distribution warehouse prepared for parcel dispatch",
+        title: "Distribution hubs",
+        detail: "Facilities supporting daily operations",
+      },
+      {
+        image: "/images/role-operations.jpg",
+        alt: "Courier loading parcels into a delivery van",
+        title: "Last-mile operations",
+        detail: "Deliveries from pickup to doorstep",
+      },
+    ],
+  },
+  logistics: {
+    heading: "Today’s operations",
+    description: "See the vehicles, people, and facilities behind each delivery.",
+    photos: [
+      {
+        image: "/images/delivery-hub.jpg",
+        alt: "Warehouse team preparing parcels for delivery",
+        title: "Warehouse dispatch",
+        detail: "Orders ready for their next route",
+      },
+      {
+        image: "/images/role-operations.jpg",
+        alt: "Courier loading packages into a delivery van",
+        title: "Driver handoff",
+        detail: "Parcels moving from hub to route",
+      },
+      {
+        image: "/images/role-fleet.jpg",
+        alt: "Line of freight trucks on a logistics route",
+        title: "Active fleet",
+        detail: "Vehicles covering delivery zones",
+      },
+    ],
+  },
+  driver: {
+    heading: "Out on the road",
+    description: "A quick look at your vehicle, parcel pickups, and delivery route.",
+    photos: [
+      {
+        image: "/images/freight-truck.jpg",
+        alt: "Freight truck travelling along a country road",
+        title: "Your route",
+        detail: "Keep your next stop in view",
+      },
+      {
+        image: "/images/role-driver.jpg",
+        alt: "Courier handing over a parcel at a delivery van",
+        title: "Parcel handoff",
+        detail: "Confirm each collection and delivery",
+      },
+      {
+        image: "/images/role-fleet.jpg",
+        alt: "Freight trucks travelling through a delivery region",
+        title: "On the move",
+        detail: "Your workday, stop by stop",
+      },
+    ],
+  },
+  customer: {
+    heading: "Your delivery, every step",
+    description: "From a parcel being prepared to its final handoff.",
+    photos: [
+      {
+        image: "/images/role-merchant.jpg",
+        alt: "Merchant carefully sealing a parcel for shipping",
+        title: "Getting ready",
+        detail: "Your parcel is packed for pickup",
+      },
+      {
+        image: "/images/role-customer.jpg",
+        alt: "Customer receiving a parcel from a courier",
+        title: "On its way",
+        detail: "Follow your delivery as it moves",
+      },
+      {
+        image: "/images/role-operations.jpg",
+        alt: "Courier loading parcels into a delivery van",
+        title: "Final delivery",
+        detail: "The last stop is almost here",
+      },
+    ],
+  },
+  merchant: {
+    heading: "From your store to your customers",
+    description: "Follow the shipping journey from packing bench to delivery route.",
+    photos: [
+      {
+        image: "/images/role-merchant.jpg",
+        alt: "Merchant preparing a packaged order for shipping",
+        title: "Pack an order",
+        detail: "Prepare customer orders for pickup",
+      },
+      {
+        image: "/images/delivery-hub.jpg",
+        alt: "Distribution center sorting outbound parcels",
+        title: "Dispatch and sort",
+        detail: "Keep outgoing shipments together",
+      },
+      {
+        image: "/images/role-driver.jpg",
+        alt: "Courier accepting a package for delivery",
+        title: "Delivery handoff",
+        detail: "Shipments headed to your customers",
+      },
+    ],
+  },
+};
+
+function RolePhotoGallery({ roleId }) {
+  const collection = rolePhotoCollections[roleId];
+
+  return (
+    <section className="role-photo-gallery" aria-label={collection.heading}>
+      <div className="role-photo-gallery-heading">
+        <div>
+          <h2>{collection.heading}</h2>
+          <p>{collection.description}</p>
+        </div>
+        <span>ROLE OVERVIEW</span>
+      </div>
+      <div className="role-photo-grid">
+        {collection.photos.map((photo) => (
+          <article className="role-photo-card" key={photo.title}>
+            <img src={photo.image} alt={photo.alt} loading="lazy" decoding="async" />
+            <div className="role-photo-card-copy">
+              <h3>{photo.title}</h3>
+              <p>{photo.detail}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function StatusBadge({ status }) {
   const className = status.toLowerCase().replaceAll(" ", "-");
   return <span className={`status-badge status-${className}`}>{status}</span>;
 }
 
-function OperationsWorkspace({ accountLabel, onSignOut }) {
-  const [activeSection, setActiveSection] = useState("overview");
+function OperationsWorkspace({ account, onSignOut }) {
+  const role = userRoles.find((item) => item.id === account.roleId) ?? userRoles[0];
+  const navigationGroups = roleSidebarGroups[role.id];
+  const [activeSection, setActiveSection] = useState(() => navigationGroups[0].items[0].id);
   const [orders, setOrders] = useState(initialOrders);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All statuses");
@@ -122,8 +328,10 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
   const [drivers, setDrivers] = useState(initialDrivers);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const allItems = sidebarGroups.flatMap((group) => group.items);
+  const allItems = navigationGroups.flatMap((group) => group.items);
   const activeItem = allItems.find((item) => item.id === activeSection) ?? allItems[0];
+  const accountFirstName = account.name.split("@")[0].split(" ")[0] || "there";
+  const assignedDemoOrders = orders.filter((order) => order.driver === initialDrivers[0].name);
   const todayLabel = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -150,7 +358,7 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
     };
     setOrders((current) => [nextOrder, ...current]);
     setShowOrderForm(false);
-    setActiveSection("deliveries");
+    setActiveSection(role.id === "merchant" ? "merchant-orders" : "deliveries");
     setSearch("");
     setStatusFilter("All statuses");
     setNotice(`Delivery ${nextOrder.id} has been created.`);
@@ -163,6 +371,14 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
 
   function assignDriver(id, driver) {
     setOrders((current) => current.map((order) => order.id === id ? { ...order, driver } : order));
+  }
+
+  function getNavigationCount(item) {
+    if (item.id === "deliveries" && role.id === "driver") return assignedDemoOrders.length;
+    if (item.id === "deliveries" && role.id === "administrator") return item.badge;
+    if (item.id === "customer-history") return Math.min(orders.length, 3);
+    if (["deliveries", "merchant-orders"].includes(item.id)) return orders.length;
+    return null;
   }
 
   function renderOverview() {
@@ -179,6 +395,7 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
             </article>
           ))}
         </section>
+        <RolePhotoGallery roleId={role.id} />
         <div className="ops-content-grid">
           <section className="ops-card activity-card">
             <div className="ops-card-heading">
@@ -344,12 +561,170 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
     );
   }
 
+  function renderDriverPage() {
+    if (activeSection === "deliveries") {
+      return (
+        <section className="ops-card recent-card">
+          <div className="ops-card-heading">
+            <div><h3>Assigned demo deliveries</h3><p>Update delivery statuses for your sample route.</p></div>
+          </div>
+          <OrdersTable
+            orders={assignedDemoOrders}
+            onStatusChange={updateOrderStatus}
+            onDriverChange={assignDriver}
+            canAssignDriver={false}
+          />
+        </section>
+      );
+    }
+
+    if (activeSection === "driver-route") {
+      return (
+        <section className="ops-card driver-route-panel">
+          <div className="ops-card-heading">
+            <div><h3>Today’s route</h3><p>Sample route · Brooklyn delivery zone</p></div>
+            <StatusBadge status="On route" />
+          </div>
+          <ol className="route-stops">
+            <li><span>1</span><div><strong>Newark distribution hub</strong><small>Pickup · 12:15</small></div></li>
+            <li><span>2</span><div><strong>Williamsburg, Brooklyn</strong><small>Delivery · 14:30</small></div></li>
+            <li><span>3</span><div><strong>Brooklyn Heights</strong><small>Next stop · 14:55</small></div></li>
+          </ol>
+        </section>
+      );
+    }
+
+    return (
+      <>
+        <section className="ops-metrics" aria-label="My route summary">
+          <article className="ops-metric-card"><span className="ops-metric-label">Assigned deliveries</span><strong>{assignedDemoOrders.length}</strong><span className="ops-metric-delta">On today’s sample route</span></article>
+          <article className="ops-metric-card"><span className="ops-metric-label">Next stop</span><strong>14:30</strong><span className="ops-metric-delta">Brooklyn, NY</span></article>
+          <article className="ops-metric-card"><span className="ops-metric-label">Completed today</span><strong>{assignedDemoOrders.filter((order) => order.status === "Delivered").length}</strong><span className="ops-metric-delta">Keep your route moving</span></article>
+          <article className="ops-metric-card"><span className="ops-metric-label">Vehicle</span><strong>V-204</strong><span className="ops-metric-delta">Van · Brooklyn zone</span></article>
+        </section>
+        <RolePhotoGallery roleId="driver" />
+        <section className="ops-card recent-card">
+          <div className="ops-card-heading">
+            <div><h3>My deliveries</h3><p>Sample assignments for the driver demo.</p></div>
+            <button className="ops-text-button" type="button" onClick={() => setActiveSection("deliveries")}>View route <span>→</span></button>
+          </div>
+          <OrdersTable
+            orders={assignedDemoOrders.slice(0, 3)}
+            onStatusChange={updateOrderStatus}
+            onDriverChange={assignDriver}
+            canAssignDriver={false}
+          />
+        </section>
+      </>
+    );
+  }
+
+  function renderCustomerPage() {
+    if (activeSection === "customer-profile") {
+      return (
+        <section className="ops-card role-info-panel">
+          <div className="ops-card-heading"><div><h3>My profile</h3><p>Contact details for this sample customer account.</p></div></div>
+          <div className="secondary-grid">
+            <article className="secondary-card"><span>Name</span><strong>{account.name.split("@")[0]}</strong><p>Customer / Sender</p></article>
+            <article className="secondary-card"><span>Email</span><strong>{account.name.includes("@") ? account.name : "Demo account"}</strong><p>Account contact</p></article>
+          </div>
+        </section>
+      );
+    }
+
+    const trackedOrder = orders[0];
+    if (activeSection === "customer-history") {
+      return (
+        <section className="ops-card recent-card">
+          <div className="ops-card-heading"><div><h3>Sample delivery history</h3><p>Example shipment records for the customer portal preview.</p></div></div>
+          <OrdersTable
+            orders={orders.slice(0, 3)}
+            onStatusChange={updateOrderStatus}
+            onDriverChange={assignDriver}
+            canAssignDriver={false}
+            canUpdateStatus={false}
+          />
+        </section>
+      );
+    }
+
+    return (
+      <>
+        <RolePhotoGallery roleId="customer" />
+        <section className="ops-card customer-tracking-card">
+          <div className="ops-card-heading">
+            <div><h3>Your sample shipment</h3><p>Track this example delivery from pickup to doorstep.</p></div>
+            <StatusBadge status={trackedOrder.status} />
+          </div>
+          <div className="customer-shipment-id">{trackedOrder.id}</div>
+          <div className="customer-shipment-route"><span>{trackedOrder.route.split(" → ")[0]}</span><i aria-hidden="true" /><span>{trackedOrder.route.split(" → ")[1]}</span></div>
+          <p className="customer-eta">Estimated arrival <strong>{trackedOrder.eta}</strong></p>
+          <p className="role-demo-note">Example shipment data only. A real customer account would only show its own shipments.</p>
+        </section>
+      </>
+    );
+  }
+
+  function renderMerchantPage() {
+    if (activeSection === "merchant-profile") {
+      return (
+        <section className="ops-card role-info-panel">
+          <div className="ops-card-heading"><div><h3>Business profile</h3><p>Contact information for this sample merchant account.</p></div></div>
+          <div className="secondary-grid">
+            <article className="secondary-card"><span>Business contact</span><strong>{account.name.split("@")[0]}</strong><p>Business Client / Merchant</p></article>
+            <article className="secondary-card"><span>Account email</span><strong>{account.name.includes("@") ? account.name : "Demo account"}</strong><p>Merchant contact</p></article>
+          </div>
+        </section>
+      );
+    }
+
+    const deliveredCount = orders.filter((order) => order.status === "Delivered").length;
+    if (activeSection === "merchant-orders") {
+      return (
+        <section className="ops-card recent-card">
+          <div className="ops-card-heading">
+            <div><h3>Sample shipments</h3><p>Example merchant orders. Create a shipment to try the local demo flow.</p></div>
+          </div>
+          <OrdersTable
+            orders={orders}
+            onStatusChange={updateOrderStatus}
+            onDriverChange={assignDriver}
+            canAssignDriver={false}
+            canUpdateStatus={false}
+          />
+        </section>
+      );
+    }
+
+    return (
+      <>
+        <section className="ops-metrics" aria-label="Merchant shipment summary">
+          <article className="ops-metric-card"><span className="ops-metric-label">Sample shipments</span><strong>{orders.length}</strong><span className="ops-metric-delta">Across this demo account</span></article>
+          <article className="ops-metric-card"><span className="ops-metric-label">In transit</span><strong>{orders.filter((order) => order.status === "In transit").length}</strong><span className="ops-metric-delta">On the way to customers</span></article>
+          <article className="ops-metric-card"><span className="ops-metric-label">Delivered</span><strong>{deliveredCount}</strong><span className="ops-metric-delta">Completed sample orders</span></article>
+          <article className="ops-metric-card"><span className="ops-metric-label">Needs attention</span><strong>{orders.filter((order) => order.status === "Delayed").length}</strong><span className="ops-metric-delta">Sample delayed orders</span></article>
+        </section>
+        <RolePhotoGallery roleId="merchant" />
+        <section className="ops-card recent-card">
+          <div className="ops-card-heading"><div><h3>Recent sample shipments</h3><p>Example orders in the merchant workspace.</p></div></div>
+          <OrdersTable
+            orders={orders.slice(0, 3)}
+            onStatusChange={updateOrderStatus}
+            onDriverChange={assignDriver}
+            canAssignDriver={false}
+            canUpdateStatus={false}
+          />
+        </section>
+      </>
+    );
+  }
+
   function renderSecondary() {
     if (activeSection === "fleet") return renderFleet();
     if (activeSection === "analytics") return renderAnalytics();
     const content = {
       devops: { title: "DevOps automation", description: "Monitor the health of your delivery platform and deployment pipeline.", cards: [["CI pipeline", "All checks passing", "Last run 8 minutes ago"], ["Deployment", "Production is up to date", "Release v1.8.2"], ["Application health", "Healthy", "99.98% uptime this month"], ["Monitoring", "Active", "Logs and alerts are connected"]] },
-      team: { title: "Team & access", description: "Manage the people who keep your deliveries moving.", cards: [["Operations team", "12 members", "Dispatch and support"], ["Drivers", `${drivers.length} active profiles`, "Manage from Fleet management"], ["Administrator", accountLabel || "Demo account", "Full workspace access"], ["Access policy", "Role-based access", "Permissions are configurable"]] },
+      team: { title: "Team & access", description: "Manage the people who keep your deliveries moving.", cards: [["Operations team", "12 members", "Dispatch and support"], ["Drivers", `${drivers.length} active profiles`, "Manage from Fleet management"], ["Administrator", account.name || "Demo account", "Full workspace access"], ["Access policy", "Role-based access", "Permissions are configurable"]] },
       integrations: { title: "Integrations", description: "Connect the tools your logistics operation relies on.", cards: [["Maps & routing", "Connected", "Route optimization enabled"], ["Email notifications", "Connected", "Delivery updates enabled"], ["Cloud storage", "Ready to connect", "Store proof of delivery"], ["API access", "Available", "Manage keys in settings"]] },
       settings: { title: "Workspace settings", description: "Configure your Routeflow workspace preferences.", cards: [["Organization", "Routeflow Logistics", "Company profile and service area"], ["Notifications", "Email and in-app", "Choose which events to receive"], ["Security", "Two-step verification", "Protect administrator accounts"], ["Preferences", "America / New York", "Time zone and display options"]] },
     }[activeSection];
@@ -360,75 +735,163 @@ function OperationsWorkspace({ accountLabel, onSignOut }) {
     <div className="ops-app">
       <aside className={`ops-sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
         <a className="brand ops-brand" href="#overview" onClick={(event) => { event.preventDefault(); setActiveSection("overview"); }}><BrandMark /><span>routeflow</span></a>
-        <div className="workspace-switch"><span className="workspace-avatar">R</span><span><strong>Routeflow Logistics</strong><small>Operations workspace</small></span><span className="switch-chevron">⌄</span></div>
+        <div className="workspace-switch"><span className="workspace-avatar">R</span><span><strong>Routeflow Logistics</strong><small>{role.workspace}</small></span><span className="switch-chevron">⌄</span></div>
         <nav className="ops-nav" aria-label="Operations navigation">
-          {sidebarGroups.map((group) => <div className="nav-group" key={group.label}><span className="nav-group-label">{group.label}</span>{group.items.map((item) => <button key={item.id} type="button" className={`ops-nav-link ${activeSection === item.id ? "selected" : ""}`} onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }}><span className="nav-icon" aria-hidden="true">{item.icon}</span><span>{item.label}</span>{item.id === "deliveries" && <span className="nav-count">{orders.length}</span>}</button>)}</div>)}
+          {navigationGroups.map((group) => (
+            <div className="nav-group" key={group.label}>
+              <span className="nav-group-label">{group.label}</span>
+              {group.items.map((item) => {
+                const count = getNavigationCount(item);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`ops-nav-link ${activeSection === item.id ? "selected" : ""}`}
+                    onClick={() => {
+                      setActiveSection(item.id);
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <span className="nav-icon" aria-hidden="true">{item.icon}</span>
+                    <span>{item.label}</span>
+                    {count !== null && <span className="nav-count">{count}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
-        <div className="sidebar-bottom"><div className="support-card"><span className="support-icon">✳</span><strong>Need a hand?</strong><p>Our logistics team is here to help.</p><button type="button" onClick={() => setNotice("Support request noted. Our team will be in touch.")}>Contact support <span>→</span></button></div><button className="sidebar-profile" type="button" onClick={onSignOut}><span className="profile-avatar">{(accountLabel || "D").slice(0, 1).toUpperCase()}</span><span><strong>{accountLabel || "Demo account"}</strong><small>Administrator · Sign out</small></span><span className="profile-more">↗</span></button></div>
+        <div className="sidebar-bottom"><div className="support-card"><span className="support-icon">✳</span><strong>Need a hand?</strong><p>Our logistics team is here to help.</p><button type="button" onClick={() => setNotice("Support request noted. Our team will be in touch.")}>Contact support <span>→</span></button></div><button className="sidebar-profile" type="button" onClick={onSignOut}><span className="profile-avatar">{account.name.slice(0, 1).toUpperCase()}</span><span><strong>{account.name}</strong><small>{role.label} · Sign out</small></span><span className="profile-more">↗</span></button></div>
       </aside>
       <div className="ops-main">
         <header className="ops-topbar">
           <button className="mobile-menu" aria-label="Open navigation" type="button" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
           <div className="breadcrumb"><span>Workspace</span><b>/</b><strong>{activeItem.label}</strong></div>
-          <div className="topbar-tools"><span className="system-status"><i />All systems operational</span><button className="notification-button" type="button" aria-label="Notifications" onClick={() => setNotice("You are all caught up. No new notifications.")}>♧<i /></button><span className="topbar-divider" /><button className="topbar-user" type="button" onClick={onSignOut}><span className="profile-avatar">{(accountLabel || "D").slice(0, 1).toUpperCase()}</span><span>{accountLabel || "Demo account"}</span><span>⌄</span></button></div>
+          <div className="topbar-tools"><span className="system-status"><i />All systems operational</span><button className="notification-button" type="button" aria-label="Notifications" onClick={() => setNotice("You are all caught up. No new notifications.")}>♧<i /></button><span className="topbar-divider" /><button className="topbar-user" type="button" onClick={onSignOut}><span className="profile-avatar">{account.name.slice(0, 1).toUpperCase()}</span><span>{account.name}</span><span>⌄</span></button></div>
         </header>
         <main className="ops-page">
+          <p className="role-demo-banner" role="note">
+            Demo workspace for <strong>{role.label}</strong>. These role-based screens are a preview, not real access control.
+          </p>
           <div className="ops-page-heading">
             <div>
               <span className="ops-date">{todayLabel}</span>
               <h1>
                 {activeSection === "overview"
-                  ? `Good morning, ${(accountLabel || "there").split("@")[0].split(" ")[0]}`
+                  ? `Good morning, ${accountFirstName}`
                   : activeItem.label}
                 <span>{activeSection === "overview" ? "." : ""}</span>
               </h1>
               <p>
                 {activeSection === "overview"
-                  ? "Here’s what’s happening across your delivery network today."
+                  ? role.id === "driver"
+                    ? "Your sample route and delivery assignments for today."
+                    : role.id === "customer"
+                      ? "Track a sample shipment and review its latest status."
+                      : role.id === "merchant"
+                        ? "Your sample shipments and delivery activity."
+                        : "Here’s what’s happening across your delivery network today."
                   : activeSection === "deliveries"
-                    ? "Create, search, assign and track every delivery in one place."
+                    ? role.id === "driver"
+                      ? "Review your sample assignments and update delivery status."
+                      : "Create, search, assign and track every delivery in one place."
                     : activeSection === "fleet"
                       ? "See driver availability and manage your active routes."
                       : "A clear view of your logistics operation."}
               </p>
             </div>
             <div className="heading-actions">
-              {activeSection === "deliveries" && (
+              {(activeSection === "deliveries" && role.id !== "driver" || activeSection === "merchant-orders") && (
                 <button
                   className="ops-primary-button"
                   type="button"
                   onClick={() => setShowOrderForm(true)}
                 >
-                  <span>＋</span> New delivery
+                  <span>＋</span> {role.id === "merchant" ? "New shipment" : "New delivery"}
                 </button>
               )}
               {activeSection === "overview" && (
                 <button
                   className="ops-outline-button"
                   type="button"
-                  onClick={() => setActiveSection("deliveries")}
+                  onClick={() => setActiveSection(role.id === "merchant" ? "merchant-orders" : "deliveries")}
                 >
-                  View deliveries <span>→</span>
+                  {role.id === "merchant" ? "View shipments" : "View deliveries"} <span>→</span>
                 </button>
               )}
             </div>
           </div>
           {notice && <div className="ops-notice" role="status"><span>✓</span>{notice}<button type="button" aria-label="Dismiss notification" onClick={() => setNotice("")}>×</button></div>}
-          {activeSection === "overview" && renderOverview()}
-          {activeSection === "deliveries" && renderDeliveries()}
-          {!["overview", "deliveries"].includes(activeSection) && renderSecondary()}
+          {role.id === "driver"
+            ? renderDriverPage()
+            : role.id === "customer"
+              ? renderCustomerPage()
+              : role.id === "merchant"
+                ? activeSection === "analytics"
+                  ? renderAnalytics()
+                  : renderMerchantPage()
+                : activeSection === "overview"
+                  ? renderOverview()
+                  : activeSection === "deliveries"
+                    ? renderDeliveries()
+                    : renderSecondary()}
           <footer className="ops-footer"><span>© 2026 Routeflow Logistics</span><span>Demo workspace · Data is stored in this session only</span></footer>
         </main>
       </div>
       {sidebarOpen && <button className="sidebar-scrim" type="button" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />}
-      {showOrderForm && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowOrderForm(false); }}><section className="order-modal" role="dialog" aria-modal="true" aria-labelledby="new-order-title"><div className="modal-heading"><div><span className="modal-eyebrow">DELIVERY DETAILS</span><h2 id="new-order-title">Create a delivery</h2><p>Add a customer and route to get this order moving.</p></div><button type="button" aria-label="Close form" onClick={() => setShowOrderForm(false)}>×</button></div><form className="order-form" onSubmit={createOrder}><label>Customer name<input name="customer" placeholder="e.g. Jordan Smith" minLength="2" required /></label><div className="form-row"><label>Pickup location<input name="pickup" placeholder="City or address" required /></label><label>Drop-off location<input name="dropoff" placeholder="City or address" required /></label></div><label>Estimated delivery time<input name="eta" type="time" defaultValue="16:30" required /></label><div className="modal-actions"><button type="button" className="ops-outline-button" onClick={() => setShowOrderForm(false)}>Cancel</button><button className="ops-primary-button" type="submit">Create delivery</button></div></form></section></div>}
+      {showOrderForm && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowOrderForm(false); }}><section className="order-modal" role="dialog" aria-modal="true" aria-labelledby="new-order-title"><div className="modal-heading"><div><span className="modal-eyebrow">DELIVERY DETAILS</span><h2 id="new-order-title">{role.id === "merchant" ? "Create a shipment" : "Create a delivery"}</h2><p>Add a customer and route to get this order moving.</p></div><button type="button" aria-label="Close form" onClick={() => setShowOrderForm(false)}>×</button></div><form className="order-form" onSubmit={createOrder}><label>Customer name<input name="customer" placeholder="e.g. Jordan Smith" minLength="2" required /></label><div className="form-row"><label>Pickup location<input name="pickup" placeholder="City or address" required /></label><label>Drop-off location<input name="dropoff" placeholder="City or address" required /></label></div><label>Estimated delivery time<input name="eta" type="time" defaultValue="16:30" required /></label><div className="modal-actions"><button type="button" className="ops-outline-button" onClick={() => setShowOrderForm(false)}>Cancel</button><button className="ops-primary-button" type="submit">{role.id === "merchant" ? "Create shipment" : "Create delivery"}</button></div></form></section></div>}
     </div>
   );
 }
 
-function OrdersTable({ orders, onStatusChange, onDriverChange, compact = false }) {
+function OrdersTable({
+  orders,
+  onStatusChange,
+  onDriverChange,
+  compact = false,
+  canAssignDriver = true,
+  canUpdateStatus = true,
+}) {
   return (
-    <div className="orders-table-wrap"><table className={`orders-table ${compact ? "compact-table" : ""}`}><thead><tr><th>Order</th><th>Customer</th><th>Route</th><th>Driver</th><th>Status</th><th>ETA</th></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td><strong className="order-id">{order.id}</strong><span className="order-type">Standard delivery</span></td><td>{order.customer}</td><td>{order.route}</td><td><label className="driver-select-wrap"><span className="assigned-driver"><i>{order.driver === "Unassigned" ? "—" : order.driver.split(" ").map((part) => part[0]).join("")}</i>{order.driver}</span><select aria-label={`Assign driver for ${order.id}`} value={order.driver} onChange={(event) => onDriverChange(order.id, event.target.value)}><option>Unassigned</option>{initialDrivers.map((driver) => <option key={driver.name}>{driver.name}</option>)}</select></label></td><td><label className="status-select-wrap"><StatusBadge status={order.status} /><select aria-label={`Update ${order.id} status`} value={order.status} onChange={(event) => onStatusChange(order.id, event.target.value)}><option>Pending</option><option>In transit</option><option>Out for delivery</option><option>Delivered</option><option>Delayed</option></select><span aria-hidden="true">⌄</span></label></td><td>{order.eta}</td></tr>)}</tbody></table></div>
+    <div className="orders-table-wrap">
+      <table className={`orders-table ${compact ? "compact-table" : ""}`}>
+        <thead>
+          <tr><th>Order</th><th>Customer</th><th>Route</th><th>Driver</th><th>Status</th><th>ETA</th></tr>
+        </thead>
+        <tbody>
+          {orders.map((order) => (
+            <tr key={order.id}>
+              <td><strong className="order-id">{order.id}</strong><span className="order-type">Standard delivery</span></td>
+              <td>{order.customer}</td>
+              <td>{order.route}</td>
+              <td>
+                {canAssignDriver ? (
+                  <label className="driver-select-wrap">
+                    <span className="assigned-driver"><i>{order.driver === "Unassigned" ? "—" : order.driver.split(" ").map((part) => part[0]).join("")}</i>{order.driver}</span>
+                    <select aria-label={`Assign driver for ${order.id}`} value={order.driver} onChange={(event) => onDriverChange(order.id, event.target.value)}>
+                      <option>Unassigned</option>
+                      {initialDrivers.map((driver) => <option key={driver.name}>{driver.name}</option>)}
+                    </select>
+                  </label>
+                ) : <span className="assigned-driver">{order.driver}</span>}
+              </td>
+              <td>
+                {canUpdateStatus ? (
+                  <label className="status-select-wrap">
+                    <StatusBadge status={order.status} />
+                    <select aria-label={`Update ${order.id} status`} value={order.status} onChange={(event) => onStatusChange(order.id, event.target.value)}>
+                      <option>Pending</option><option>In transit</option><option>Out for delivery</option><option>Delivered</option><option>Delayed</option>
+                    </select>
+                    <span aria-hidden="true">⌄</span>
+                  </label>
+                ) : <StatusBadge status={order.status} />}
+              </td>
+              <td>{order.eta}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -522,13 +985,13 @@ function WelcomeScreen({ onAuth }) {
                 <span>NETWORK OVERVIEW</span>
                 <span className="preview-live">LIVE</span>
               </div>
-              <div className="preview-map" aria-hidden="true">
-                <span className="preview-route preview-route-one" />
-                <span className="preview-route preview-route-two" />
-                <span className="preview-node node-one" />
-                <span className="preview-node node-two" />
-                <span className="preview-node node-three" />
-                <span className="preview-node node-four" />
+              <div className="preview-map">
+                <img
+                  className="preview-image"
+                  src="/images/freight-truck.jpg"
+                  alt="Freight truck carrying a shipment on a rural road"
+                />
+                <span className="preview-image-caption">Newark to Brooklyn · In transit</span>
               </div>
               <div className="preview-summary">
                 <div>
@@ -549,6 +1012,22 @@ function WelcomeScreen({ onAuth }) {
               </span>
             </div>
           </aside>
+        </section>
+
+        <section className="welcome-operations-photo" aria-label="Warehouse operations">
+          <div>
+            <span className="eyebrow dark-eyebrow">
+              <span className="eyebrow-dot" />
+              BUILT FOR THE REAL WORLD
+            </span>
+            <h2>From the warehouse to the doorstep.</h2>
+            <p>Keep every handoff in view, from the first parcel scan to the final delivery.</p>
+          </div>
+          <img
+            src="/images/delivery-hub.jpg"
+            alt="A busy distribution warehouse filled with parcels ready to ship"
+            loading="lazy"
+          />
         </section>
 
         <section
@@ -619,7 +1098,7 @@ function AuthScreen({ mode, onModeChange, onBack, onSuccess }) {
     const name = isSignup
       ? String(formData.get("fullName")).trim()
       : String(formData.get("email")).trim();
-    onSuccess(name);
+    onSuccess({ name, roleId: String(formData.get("roleId")) });
   }
 
   function changeMode(nextMode) {
@@ -699,6 +1178,15 @@ function AuthScreen({ mode, onModeChange, onBack, onSuccess }) {
             </label>
           )}
           <label className="auth-field">
+            <span>{isSignup ? "I am a…" : "Choose a role to preview"}</span>
+            <select name="roleId" defaultValue="" required>
+              <option value="" disabled>Select your role</option>
+              {userRoles.map((role) => (
+                <option key={role.id} value={role.id}>{role.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="auth-field">
             <span>Work email</span>
             <input
               name="email"
@@ -733,7 +1221,7 @@ function AuthScreen({ mode, onModeChange, onBack, onSuccess }) {
             </label>
           )}
           <p className="auth-demo-note">
-            Demo frontend only: forms are not connected to real account authentication.
+            Demo only: accounts are not saved, and role screens do not enforce real permissions.
           </p>
           <p className="auth-notice" role="alert" aria-live="polite">
             {notice}
@@ -769,7 +1257,7 @@ function AuthScreen({ mode, onModeChange, onBack, onSuccess }) {
 function App() {
   const [screen, setScreen] = useState("welcome");
   const [authMode, setAuthMode] = useState("login");
-  const [accountLabel, setAccountLabel] = useState("");
+  const [account, setAccount] = useState(null);
 
   function openAuth(mode) {
     setAuthMode(mode);
@@ -777,14 +1265,14 @@ function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
-  function openPlatform(label) {
-    setAccountLabel(label);
+  function openPlatform(nextAccount) {
+    setAccount(nextAccount);
     setScreen("platform");
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
   function signOut() {
-    setAccountLabel("");
+    setAccount(null);
     setScreen("welcome");
     window.scrollTo({ top: 0, behavior: "instant" });
   }
@@ -805,7 +1293,7 @@ function App() {
   }
 
   if (screen === "platform") {
-    return <OperationsWorkspace accountLabel={accountLabel} onSignOut={signOut} />;
+    return <OperationsWorkspace key={account.roleId} account={account} onSignOut={signOut} />;
   }
 
   return (
@@ -824,7 +1312,7 @@ function App() {
         </nav>
 
         <div className="nav-actions">
-          <span className="account-label" title={accountLabel}>
+          <span className="account-label" title={account?.name || "Demo account"}>
             Demo account
           </span>
           <button type="button" className="ghost-btn" onClick={signOut}>
