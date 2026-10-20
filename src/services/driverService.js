@@ -4,7 +4,7 @@
  * Currently backed by demo data.
  */
 
-import { initialDrivers } from "../data/demoData";
+import { initialDrivers } from "../data/demoData.js";
 
 export const driverService = {
   /**

@@ -1,35 +1,33 @@
 import React from "react";
+import MetricCard from "../components/common/MetricCard";
 import { shipmentVolume } from "../data/demoData";
 
-export default function AnalyticsPage({ orders }) {
+export default function AnalyticsPage({ orders = [] }) {
   const delivered = orders.filter((order) => order.status === "Delivered").length;
 
   return (
     <>
       <section className="ops-metrics report-metrics">
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Delivery success</span>
-          <strong>96.8%</strong>
-          <span className="ops-metric-delta">↑ 2.4% vs last week</span>
-        </article>
-
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Completed in this view</span>
-          <strong>{delivered}</strong>
-          <span className="ops-metric-delta">of {orders.length} sample orders</span>
-        </article>
-
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Average delivery time</span>
-          <strong>2h 18m</strong>
-          <span className="ops-metric-delta">↓ 14 min vs last week</span>
-        </article>
-
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Customer satisfaction</span>
-          <strong>4.9 / 5</strong>
-          <span className="ops-metric-delta">From 328 ratings</span>
-        </article>
+        <MetricCard
+          label="Delivery success"
+          value="96.8%"
+          delta="↑ 2.4% vs last week"
+        />
+        <MetricCard
+          label="Completed in this view"
+          value={delivered}
+          delta={`of ${orders.length} sample orders`}
+        />
+        <MetricCard
+          label="Average delivery time"
+          value="2h 18m"
+          delta="↓ 14 min vs last week"
+        />
+        <MetricCard
+          label="Customer satisfaction"
+          value="4.9 / 5"
+          delta="From 328 ratings"
+        />
       </section>
 
       <section className="ops-card analytics-details">
@@ -53,4 +51,3 @@ export default function AnalyticsPage({ orders }) {
     </>
   );
 }
-

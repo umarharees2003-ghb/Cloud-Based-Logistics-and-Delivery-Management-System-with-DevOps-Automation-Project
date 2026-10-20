@@ -34,15 +34,15 @@ export function useDeliveries() {
     return nextOrder;
   }
 
-  function updateOrderStatus(id, status) {
-    deliveryService.updateStatus(id, status);
+  async function updateOrderStatus(id, status) {
+    await deliveryService.updateStatus(id, status);
     setOrders((current) =>
       current.map((order) => (order.id === id ? { ...order, status } : order))
     );
   }
 
-  function assignDriver(id, driver) {
-    deliveryService.assignDriver(id, driver);
+  async function assignDriver(id, driver) {
+    await deliveryService.assignDriver(id, driver);
     setOrders((current) =>
       current.map((order) => (order.id === id ? { ...order, driver } : order))
     );
@@ -69,4 +69,3 @@ export function useDeliveries() {
     resetFilters,
   };
 }
-

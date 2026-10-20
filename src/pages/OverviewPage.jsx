@@ -1,10 +1,11 @@
 import React from "react";
 import OrdersTable from "../components/OrdersTable";
 import RolePhotoGallery from "../components/RolePhotoGallery";
+import MetricCard from "../components/common/MetricCard";
 import { overviewMetrics, shipmentVolume } from "../data/demoData";
 
 export default function OverviewPage({
-  orders,
+  orders = [],
   onStatusChange,
   onDriverChange,
   role,
@@ -17,16 +18,18 @@ export default function OverviewPage({
     <>
       <section className="ops-metrics" aria-label="Delivery summary">
         {overviewMetrics.map((metric) => (
-          <article className="ops-metric-card" key={metric.label}>
-            <span className={`ops-metric-icon ${metric.tone}`}>{metric.icon}</span>
-            <span className="ops-metric-label">{metric.label}</span>
-            <strong>
-              {metric.label === "Total deliveries"
+          <MetricCard
+            key={metric.label}
+            label={metric.label}
+            value={
+              metric.label === "Total deliveries"
                 ? deliveryCount.toLocaleString()
-                : metric.value}
-            </strong>
-            <span className="ops-metric-delta">{metric.delta}</span>
-          </article>
+                : metric.value
+            }
+            delta={metric.delta}
+            icon={metric.icon}
+            tone={metric.tone}
+          />
         ))}
       </section>
 
@@ -118,4 +121,3 @@ export default function OverviewPage({
     </>
   );
 }
-

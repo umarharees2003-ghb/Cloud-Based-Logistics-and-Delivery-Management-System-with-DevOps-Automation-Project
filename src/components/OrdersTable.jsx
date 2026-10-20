@@ -1,9 +1,10 @@
 import React from "react";
 import StatusBadge from "./StatusBadge";
 import { initialDrivers } from "../data/demoData";
+import { getInitials } from "../utils/formatters";
 
 export default function OrdersTable({
-  orders,
+  orders = [],
   onStatusChange,
   onDriverChange,
   compact = false,
@@ -25,7 +26,7 @@ export default function OrdersTable({
           </tr>
         </thead>
         <tbody>
-          {orders.map((order) => (
+          {(orders || []).map((order) => (
             <tr key={order.id}>
               <td>
                 <strong className="order-id">{order.id}</strong>
@@ -37,14 +38,7 @@ export default function OrdersTable({
                 {canAssignDriver ? (
                   <label className="driver-select-wrap">
                     <span className="assigned-driver">
-                      <i>
-                        {order.driver === "Unassigned"
-                          ? "—"
-                          : order.driver
-                              .split(" ")
-                              .map((part) => part[0])
-                              .join("")}
-                      </i>
+                      <i>{getInitials(order.driver)}</i>
                       {order.driver}
                     </span>
                     <select

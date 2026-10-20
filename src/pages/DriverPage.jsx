@@ -2,10 +2,11 @@ import React from "react";
 import OrdersTable from "../components/OrdersTable";
 import RolePhotoGallery from "../components/RolePhotoGallery";
 import StatusBadge from "../components/StatusBadge";
+import MetricCard from "../components/common/MetricCard";
 
 export default function DriverPage({
   activeSection,
-  assignedDemoOrders,
+  assignedDemoOrders = [],
   onStatusChange,
   onDriverChange,
   onNavigate,
@@ -69,31 +70,26 @@ export default function DriverPage({
   return (
     <>
       <section className="ops-metrics" aria-label="My route summary">
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Assigned deliveries</span>
-          <strong>{assignedDemoOrders.length}</strong>
-          <span className="ops-metric-delta">On today’s sample route</span>
-        </article>
-
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Next stop</span>
-          <strong>14:30</strong>
-          <span className="ops-metric-delta">Brooklyn, NY</span>
-        </article>
-
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Completed today</span>
-          <strong>
-            {assignedDemoOrders.filter((order) => order.status === "Delivered").length}
-          </strong>
-          <span className="ops-metric-delta">Keep your route moving</span>
-        </article>
-
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Vehicle</span>
-          <strong>V-204</strong>
-          <span className="ops-metric-delta">Van · Brooklyn zone</span>
-        </article>
+        <MetricCard
+          label="Assigned deliveries"
+          value={assignedDemoOrders.length}
+          delta="On today’s sample route"
+        />
+        <MetricCard
+          label="Next stop"
+          value="14:30"
+          delta="Brooklyn, NY"
+        />
+        <MetricCard
+          label="Completed today"
+          value={assignedDemoOrders.filter((order) => order.status === "Delivered").length}
+          delta="Keep your route moving"
+        />
+        <MetricCard
+          label="Vehicle"
+          value="V-204"
+          delta="Van · Brooklyn zone"
+        />
       </section>
 
       <RolePhotoGallery roleId="driver" />
@@ -122,4 +118,3 @@ export default function DriverPage({
     </>
   );
 }
-

@@ -18,8 +18,8 @@ import { getTodayLabel, getAccountFirstName } from "../utils/formatters";
 
 export default function PlatformPage({ account, onSignOut }) {
   const role = userRoles.find((item) => item.id === account?.roleId) ?? userRoles[0];
-  const navigationGroups = roleSidebarGroups[role.id];
-  const [activeSection, setActiveSection] = useState(() => navigationGroups[0].items[0].id);
+  const navigationGroups = roleSidebarGroups[role.id] ?? roleSidebarGroups.administrator;
+  const [activeSection, setActiveSection] = useState(() => navigationGroups[0]?.items[0]?.id || "overview");
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

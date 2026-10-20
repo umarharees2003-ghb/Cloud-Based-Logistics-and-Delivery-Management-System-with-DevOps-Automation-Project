@@ -1,11 +1,12 @@
 import React from "react";
 import OrdersTable from "../components/OrdersTable";
 import RolePhotoGallery from "../components/RolePhotoGallery";
+import MetricCard from "../components/common/MetricCard";
 
 export default function MerchantPage({
   activeSection,
   account,
-  orders,
+  orders = [],
   onStatusChange,
   onDriverChange,
 }) {
@@ -61,29 +62,26 @@ export default function MerchantPage({
   return (
     <>
       <section className="ops-metrics" aria-label="Merchant shipment summary">
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Sample shipments</span>
-          <strong>{orders.length}</strong>
-          <span className="ops-metric-delta">Across this demo account</span>
-        </article>
-
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">In transit</span>
-          <strong>{orders.filter((order) => order.status === "In transit").length}</strong>
-          <span className="ops-metric-delta">On the way to customers</span>
-        </article>
-
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Delivered</span>
-          <strong>{deliveredCount}</strong>
-          <span className="ops-metric-delta">Completed sample orders</span>
-        </article>
-
-        <article className="ops-metric-card">
-          <span className="ops-metric-label">Needs attention</span>
-          <strong>{orders.filter((order) => order.status === "Delayed").length}</strong>
-          <span className="ops-metric-delta">Sample delayed orders</span>
-        </article>
+        <MetricCard
+          label="Sample shipments"
+          value={orders.length}
+          delta="Across this demo account"
+        />
+        <MetricCard
+          label="In transit"
+          value={orders.filter((order) => order.status === "In transit").length}
+          delta="On the way to customers"
+        />
+        <MetricCard
+          label="Delivered"
+          value={deliveredCount}
+          delta="Completed sample orders"
+        />
+        <MetricCard
+          label="Needs attention"
+          value={orders.filter((order) => order.status === "Delayed").length}
+          delta="Sample delayed orders"
+        />
       </section>
 
       <RolePhotoGallery roleId="merchant" />
@@ -106,4 +104,3 @@ export default function MerchantPage({
     </>
   );
 }
-

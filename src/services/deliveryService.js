@@ -4,7 +4,7 @@
  * Currently backed by demo data.
  */
 
-import { initialOrders } from "../data/demoData";
+import { initialOrders } from "../data/demoData.js";
 
 export const deliveryService = {
   /**

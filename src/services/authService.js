@@ -4,7 +4,7 @@
  * Currently backed by demo session state.
  */
 
-import { userRoles } from "../data/demoData";
+import { userRoles } from "../data/demoData.js";
 
 export const authService = {
   /**
