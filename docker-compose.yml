@@ -5,10 +5,10 @@ services:
       dockerfile: Dockerfile
     container_name: routeflow-frontend
     ports:
-      - "8080:80"
+      - "8080:8080"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1/ || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
