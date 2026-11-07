@@ -2,9 +2,9 @@ name: Routeflow Continuous Integration
 
 on:
   push:
-    branches: [main, master, UmarHarees-Routeflow]
+    branches: [main, master, UmarHarees-Routeflow, dinura]
   pull_request:
-    branches: [main, master, UmarHarees-Routeflow]
+    branches: [main, master, UmarHarees-Routeflow, dinura]
 
 jobs:
   backend-test:
@@ -90,4 +90,3 @@ jobs:
           file: ./Front-End/Dockerfile
           push: false
           tags: routeflow/frontend:latest
-
