@@ -10,16 +10,16 @@ const {
 
 const router = express.Router();
 
-// Public / optional auth reads to support seamless frontend previews and authenticated queries
-router.get("/", optionalAuthenticate, deliveryController.getDeliveries);
-router.get("/:id", optionalAuthenticate, deliveryController.getDeliveryById);
-router.get("/:id/history", optionalAuthenticate, deliveryController.getDeliveryHistory);
+router.get("/", authenticate, deliveryController.getDeliveries);
+router.get("/:id/history", authenticate, deliveryController.getDeliveryHistory);
+router.get("/:id", authenticate, deliveryController.getDeliveryById);
 router.get("/:id/tracking", deliveryController.trackDelivery);
 
 // Create delivery
 router.post(
   "/",
-  optionalAuthenticate,
+  authenticate,
+  authorize("administrator", "logistics", "merchant", "customer"),
   validateRequest(validateCreateDelivery),
   deliveryController.createDelivery
 );
@@ -27,27 +27,29 @@ router.post(
 // Update status
 router.patch(
   "/:id/status",
-  optionalAuthenticate,
+  authenticate,
+  authorize("administrator", "logistics", "driver"),
   deliveryController.updateStatus
 );
 
 // Assign driver (both /assign-driver and /driver for frontend compatibility)
 router.patch(
   "/:id/assign-driver",
-  optionalAuthenticate,
+  authenticate,
+  authorize("administrator", "logistics"),
   validateRequest(validateAssignDriver),
   deliveryController.assignDriver
 );
 
 router.patch(
   "/:id/driver",
-  optionalAuthenticate,
+  authenticate,
+  authorize("administrator", "logistics"),
   validateRequest(validateAssignDriver),
   deliveryController.assignDriver
 );
 
 // Cancellation
-router.delete("/:id", optionalAuthenticate, deliveryController.cancelDelivery);
+router.delete("/:id", authenticate, deliveryController.cancelDelivery);
 
 module.exports = router;
-

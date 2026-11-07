@@ -110,7 +110,9 @@ class DeliveryController {
 
   async trackDelivery(req, res, next) {
     try {
-      const tracking = await deliveryService.trackByTrackingNumber(req.params.trackingNumber);
+      const tracking = await deliveryService.trackByTrackingNumber(
+        req.params.trackingNumber || req.params.id
+      );
       res.status(200).json({
         success: true,
         data: tracking,
@@ -140,4 +142,3 @@ class DeliveryController {
 }
 
 module.exports = new DeliveryController();
-

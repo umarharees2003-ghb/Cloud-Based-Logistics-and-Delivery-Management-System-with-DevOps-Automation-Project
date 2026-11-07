@@ -81,6 +81,7 @@ describe("Delivery Management API", () => {
     it("should validate required pickup and dropoff fields", async () => {
       const res = await request(app)
         .post("/api/deliveries")
+        .set("Authorization", `Bearer ${adminToken}`)
         .send({
           customer: "Alice Customer",
           pickup: "",

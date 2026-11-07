@@ -61,7 +61,9 @@ describe("Driver Management API", () => {
     });
 
     it("should return the list of drivers in roster", async () => {
-      const res = await request(app).get("/api/drivers");
+      const res = await request(app)
+        .get("/api/drivers")
+        .set("Authorization", `Bearer ${adminToken}`);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.success).toBe(true);
@@ -87,6 +89,7 @@ describe("Driver Management API", () => {
     it("should toggle driver status from Available to On route", async () => {
       const res = await request(app)
         .patch(`/api/drivers/${driverId}/availability`)
+        .set("Authorization", `Bearer ${driverToken}`)
         .send({ status: "On route" });
 
       expect(res.statusCode).toBe(200);
@@ -97,4 +100,3 @@ describe("Driver Management API", () => {
     });
   });
 });
-
