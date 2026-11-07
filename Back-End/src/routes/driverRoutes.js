@@ -10,9 +10,8 @@ const {
 
 const router = express.Router();
 
-// Allow public/optional auth for viewing driver roster (matching frontend demo/portal preview)
-router.get("/", optionalAuthenticate, driverController.getDrivers);
-router.get("/:id", optionalAuthenticate, driverController.getDriverById);
+router.get("/", authenticate, authorize("administrator", "logistics"), driverController.getDrivers);
+router.get("/:id", authenticate, driverController.getDriverById);
 router.get("/:id/deliveries", optionalAuthenticate, driverController.getDriverDeliveries);
 
 // Protected mutation routes
@@ -32,17 +31,7 @@ router.patch(
 );
 
 // Toggle/update status (driver themselves, administrator, or logistics)
-router.patch(
-  "/:id/availability",
-  optionalAuthenticate,
-  driverController.updateAvailability
-);
-
-router.patch(
-  "/:id/status",
-  optionalAuthenticate,
-  driverController.updateAvailability
-);
+router.patch("/:id/availability", authenticate, authorize("administrator", "logistics", "driver"), driverController.updateAvailability);
+router.patch("/:id/status", authenticate, authorize("administrator", "logistics", "driver"), driverController.updateAvailability);
 
 module.exports = router;
-
