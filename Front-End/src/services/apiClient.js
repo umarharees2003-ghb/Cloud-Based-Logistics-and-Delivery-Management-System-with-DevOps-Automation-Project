@@ -1,15 +1,31 @@
 /**
  * API Client Configuration
  *
- * Prepares the Routeflow frontend for future Node.js / Express backend
- * and MongoDB integration. Currently, services return local demo data.
- * When the backend is introduced, services can route their requests
- * through this centralized client.
+ * Centralized fetch client for Routeflow backend API communication.
+ * Handles base URL configuration, JSON parsing, error throwing,
+ * and automatic Bearer token injection from localStorage.
  */
 
 export const API_BASE_URL =
   (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_BASE_URL) ||
   "/api";
+
+export function getStoredToken() {
+  if (typeof window !== "undefined" && window.localStorage) {
+    return window.localStorage.getItem("routeflow_token");
+  }
+  return null;
+}
+
+export function setStoredToken(token) {
+  if (typeof window !== "undefined" && window.localStorage) {
+    if (token) {
+      window.localStorage.setItem("routeflow_token", token);
+    } else {
+      window.localStorage.removeItem("routeflow_token");
+    }
+  }
+}
 
 /**
  * Common fetch helper for authenticated JSON API requests.
@@ -19,8 +35,10 @@ export const API_BASE_URL =
  */
 export async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+  const token = getStoredToken();
   const headers = {
     "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
@@ -36,4 +54,3 @@ export async function apiRequest(endpoint, options = {}) {
 
   return response.json();
 }
-

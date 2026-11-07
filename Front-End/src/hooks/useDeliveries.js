@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { initialOrders } from "../data/demoData";
 import { deliveryService } from "../services/deliveryService";
 
@@ -7,6 +7,21 @@ export function useDeliveries() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All statuses");
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    deliveryService
+      .getDeliveries()
+      .then((items) => {
+        if (active && Array.isArray(items) && items.length > 0) {
+          setOrders(items);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {

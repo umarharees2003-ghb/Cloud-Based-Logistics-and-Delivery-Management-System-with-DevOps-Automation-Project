@@ -21,11 +21,15 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
       if (isSignup) {
         userAccount = await authService.signup({
           fullName: String(formData.get("fullName")),
+          email: String(formData.get("email")),
+          password: String(formData.get("password")),
+          confirmPassword: String(formData.get("confirmPassword")),
           roleId: String(formData.get("roleId")),
         });
       } else {
         userAccount = await authService.login({
           email: String(formData.get("email")),
+          password: String(formData.get("password")),
           roleId: String(formData.get("roleId")),
         });
       }
@@ -199,4 +203,8 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
     </main>
   );
 }
+
+
+
+
 

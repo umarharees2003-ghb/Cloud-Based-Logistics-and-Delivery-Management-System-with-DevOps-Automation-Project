@@ -1,10 +1,10 @@
 /**
  * Driver / Fleet Service
- * Prepares the application for future integration with Node.js/Express backend API and MongoDB.
- * Currently backed by demo data.
+ * Communicates with Routeflow Express backend API with graceful offline fallback.
  */
 
 import { initialDrivers } from "../data/demoData.js";
+import { apiRequest } from "./apiClient.js";
 
 export const driverService = {
   /**
@@ -12,10 +12,16 @@ export const driverService = {
    * @returns {Promise<Array>}
    */
   async getDrivers() {
-    // In future backend integration:
-    // const res = await fetch('/api/drivers');
-    // return res.json();
-    return [...initialDrivers];
+    try {
+      const res = await apiRequest("/drivers");
+      if (res && Array.isArray(res.data) && res.data.length > 0) {
+        return res.data;
+      }
+      return [...initialDrivers];
+    } catch (err) {
+      console.warn("Backend drivers API unreachable, using local demo roster:", err.message);
+      return [...initialDrivers];
+    }
   },
 
   /**
@@ -25,11 +31,16 @@ export const driverService = {
    * @returns {Promise<string>}
    */
   async toggleStatus(driverName, currentStatus) {
-    // In future backend integration:
-    // const nextStatus = currentStatus === "Available" ? "On route" : "Available";
-    // const res = await fetch(`/api/drivers/${driverName}/status`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
-    // return res.json();
-    return currentStatus === "Available" ? "On route" : "Available";
+    const nextStatus = currentStatus === "Available" ? "On route" : "Available";
+    try {
+      await apiRequest(`/drivers/${encodeURIComponent(driverName)}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      return nextStatus;
+    } catch (err) {
+      console.warn("Backend driver status update failed, updating locally:", err.message);
+      return nextStatus;
+    }
   },
 };
-

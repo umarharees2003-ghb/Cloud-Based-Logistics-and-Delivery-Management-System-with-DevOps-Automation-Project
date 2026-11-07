@@ -1,10 +1,10 @@
 /**
  * Delivery Service
- * Prepares the application for future integration with Node.js/Express backend API and MongoDB.
- * Currently backed by demo data.
+ * Communicates with Routeflow Express backend API with graceful offline fallback.
  */
 
 import { initialOrders } from "../data/demoData.js";
+import { apiRequest } from "./apiClient.js";
 
 export const deliveryService = {
   /**
@@ -12,30 +12,50 @@ export const deliveryService = {
    * @returns {Promise<Array>}
    */
   async getDeliveries() {
-    // In future backend integration:
-    // const res = await fetch('/api/deliveries');
-    // return res.json();
-    return [...initialOrders];
+    try {
+      const res = await apiRequest("/deliveries");
+      if (res && Array.isArray(res.data) && res.data.length > 0) {
+        return res.data;
+      }
+      return [...initialOrders];
+    } catch (err) {
+      console.warn("Backend deliveries API unreachable, using local demo data:", err.message);
+      return [...initialOrders];
+    }
   },
 
   /**
    * Create a new shipment / delivery
-   * @param {Object} orderData - { customer, pickup, dropoff, eta, totalCount }
+   * @param {Object} orderData - { customer, pickup, dropoff, eta, count }
    * @returns {Promise<Object>}
    */
   async createDelivery({ customer, pickup, dropoff, eta, count = 0 }) {
-    // In future backend integration:
-    // const res = await fetch('/api/deliveries', { method: 'POST', body: JSON.stringify(orderData) });
-    // return res.json();
-    const newOrder = {
-      id: `SHP-${10500 + count}`,
-      customer: customer.trim(),
-      route: `${pickup.trim()} → ${dropoff.trim()}`,
-      status: "Pending",
-      eta: String(eta),
-      driver: "Unassigned",
-    };
-    return newOrder;
+    try {
+      const res = await apiRequest("/deliveries", {
+        method: "POST",
+        body: JSON.stringify({ customer, pickup, dropoff, eta }),
+      });
+      return (
+        res.data || {
+          id: res.id || `SHP-${10500 + count}`,
+          customer: res.customer || customer.trim(),
+          route: res.route || `${pickup.trim()} → ${dropoff.trim()}`,
+          status: res.status || "Pending",
+          eta: String(res.eta || eta),
+          driver: res.driver || "Unassigned",
+        }
+      );
+    } catch (err) {
+      console.warn("Backend create delivery failed, using local creation:", err.message);
+      return {
+        id: `SHP-${10500 + count}`,
+        customer: customer.trim(),
+        route: `${pickup.trim()} → ${dropoff.trim()}`,
+        status: "Pending",
+        eta: String(eta),
+        driver: "Unassigned",
+      };
+    }
   },
 
   /**
@@ -44,10 +64,16 @@ export const deliveryService = {
    * @param {string} status
    */
   async updateStatus(id, status) {
-    // In future backend integration:
-    // const res = await fetch(`/api/deliveries/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
-    // return res.json();
-    return { id, status };
+    try {
+      await apiRequest(`/deliveries/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      });
+      return { id, status };
+    } catch (err) {
+      console.warn("Backend status update failed, updating locally:", err.message);
+      return { id, status };
+    }
   },
 
   /**
@@ -56,10 +82,15 @@ export const deliveryService = {
    * @param {string} driver
    */
   async assignDriver(id, driver) {
-    // In future backend integration:
-    // const res = await fetch(`/api/deliveries/${id}/driver`, { method: 'PATCH', body: JSON.stringify({ driver }) });
-    // return res.json();
-    return { id, driver };
+    try {
+      await apiRequest(`/deliveries/${id}/driver`, {
+        method: "PATCH",
+        body: JSON.stringify({ driver }),
+      });
+      return { id, driver };
+    } catch (err) {
+      console.warn("Backend assign driver failed, updating locally:", err.message);
+      return { id, driver };
+    }
   },
 };
-
