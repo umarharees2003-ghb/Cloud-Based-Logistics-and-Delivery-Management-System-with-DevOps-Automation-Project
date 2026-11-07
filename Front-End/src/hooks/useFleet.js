@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { initialDrivers } from "../data/demoData";
 import { driverService } from "../services/driverService";
 
 export function useFleet() {
-  const [drivers, setDrivers] = useState(initialDrivers);
+  const [drivers, setDrivers] = useState([]);
 
   useEffect(() => {
     let active = true;

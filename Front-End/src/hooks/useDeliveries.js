@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
-import { initialOrders } from "../data/demoData";
 import { deliveryService } from "../services/deliveryService";
 
 export function useDeliveries() {
-  const [orders, setOrders] = useState(initialOrders);
+  const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All statuses");
   const [notice, setNotice] = useState("");
@@ -13,11 +12,13 @@ export function useDeliveries() {
     deliveryService
       .getDeliveries()
       .then((items) => {
-        if (active && Array.isArray(items) && items.length > 0) {
+        if (active && Array.isArray(items)) {
           setOrders(items);
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        if (active) setNotice(error.message || "Unable to load deliveries.");
+      });
     return () => {
       active = false;
     };
