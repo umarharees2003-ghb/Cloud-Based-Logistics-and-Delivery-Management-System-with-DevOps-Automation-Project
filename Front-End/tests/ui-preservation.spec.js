@@ -1,6 +1,13 @@
 import { test, expect } from "@playwright/test";
 async function settle(page) {
-  await page.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].filter((image) => image.loading !== "lazy").map((image) => image.decode().catch(() => {}))); });
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all([...document.images].filter((image) => image.loading !== "lazy").map((image) => image.decode().catch(() => {})));
+    document.querySelectorAll("video").forEach((video) => {
+      video.pause();
+      video.currentTime = 0;
+    });
+  });
 }
 const formContract = (page) => page.locator("#auth-form input, #auth-form select, #auth-form button").evaluateAll((nodes) => nodes.map((node) => ({ tag: node.tagName, name: node.name, type: node.type, required: node.required })));
 test("enhanced palette preserves original welcome controls and authentication form structure", async ({ browser }) => {

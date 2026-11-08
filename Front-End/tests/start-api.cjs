@@ -2,6 +2,9 @@ process.env.NODE_ENV = "test";
 process.env.APP_ENV = "development";
 process.env.ALLOW_PUBLIC_STAFF_SIGNUP = process.env.DEMO_PUBLIC_STAFF_SIGNUP === "true" ? "true" : "false";
 process.env.JWT_SECRET = "browser_tests_only_random_secret_32_chars";
+process.env.FRONTEND_ORIGIN =
+  process.env.FRONTEND_ORIGIN ||
+  "http://127.0.0.1:5179,http://127.0.0.1:5180,http://127.0.0.1:5181";
 const { createRequire } = require("module");
 const path = require("path");
 const backend = createRequire(path.resolve(__dirname, "../../Back-End/package.json"));

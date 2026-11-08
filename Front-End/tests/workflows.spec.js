@@ -10,7 +10,12 @@ async function login(page, role) {
 }
 test("welcome and five-role login retain original layout", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Make every mile", { exact: false })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Delivering a smarter tomorrow.", exact: true })).toBeVisible();
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(navigation.getByRole("link", { name: "Platform", exact: true })).toHaveAttribute("href", "#welcome-overview");
+  await expect(navigation.getByRole("link", { name: "Benefits", exact: true })).toHaveAttribute("href", "#welcome-benefits");
+  await expect(navigation.getByRole("link", { name: "Get started", exact: true })).toHaveAttribute("href", "#welcome-contact");
+  await expect(page.getByRole("link", { name: "Explore the platform", exact: true })).toHaveAttribute("href", "#welcome-benefits");
   await page.screenshot({ path: ".artifacts/welcome.png", fullPage: true });
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.locator("select[name=roleId] option")).toHaveCount(6);

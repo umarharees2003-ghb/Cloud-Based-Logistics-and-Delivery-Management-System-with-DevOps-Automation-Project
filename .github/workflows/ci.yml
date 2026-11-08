@@ -1,9 +1,9 @@
 name: Routeflow Continuous Integration
 on:
   push:
-    branches: [main, master, UmarHarees-Routeflow, dinura, routeflow-v2]
+    branches: [main, master, UmarHarees-Routeflow, dinura, dinura-integration, routeflow-v2]
   pull_request:
-    branches: [main, master, UmarHarees-Routeflow, dinura]
+    branches: [main, master, UmarHarees-Routeflow, dinura, dinura-integration]
 concurrency:
   group: routeflow-ci-${{ github.ref }}
   cancel-in-progress: true
