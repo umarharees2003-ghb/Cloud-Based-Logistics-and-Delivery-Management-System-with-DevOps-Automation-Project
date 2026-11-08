@@ -1,4 +1,5 @@
 process.env.NODE_ENV = "test";
+process.env.ALLOW_PUBLIC_STAFF_SIGNUP = process.env.DEMO_PUBLIC_STAFF_SIGNUP === "true" ? "true" : "false";
 process.env.JWT_SECRET = "browser_tests_only_random_secret_32_chars";
 const { createRequire } = require("module");
 const path = require("path");
@@ -16,6 +17,6 @@ const mongoose = backend("mongoose");
     if (role === "driver") await Driver.create({ user: user._id, name: user.name, vehicle: "Van V-101", zone: "Test zone" });
   }
   const app = backend("./src/app");
-  const server = app.listen(5055, "127.0.0.1");
+  const server = app.listen(Number(process.env.TEST_API_PORT || 5055), "127.0.0.1");
   for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => server.close(async () => { await mongoose.disconnect(); await db.stop(); process.exit(0); }));
 })().catch((err) => { console.error(err); process.exit(1); });

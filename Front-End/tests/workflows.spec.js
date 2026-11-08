@@ -138,7 +138,7 @@ test("logistics signup explains approval, administrator provisions, and manager 
   await page.locator("input[name=confirmPassword]").fill("BrowserPassword123!");
   await page.locator("button[type=submit]").click();
   await expect(page.locator(".auth-notice")).toContainText("Role: Privileged accounts require administrator approval");
-  await expect(page.locator(".auth-notice")).toContainText("Team & access");
+  await expect(page.locator(".auth-notice")).toContainText("ALLOW_PUBLIC_STAFF_SIGNUP=true");
   await expect(page.locator(".ops-sidebar")).toHaveCount(0);
   await login(page, "administrator");
   await page.getByRole("button", { name: "Team & access", exact: true }).click();

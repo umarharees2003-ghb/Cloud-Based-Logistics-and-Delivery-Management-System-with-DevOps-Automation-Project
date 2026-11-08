@@ -14,7 +14,9 @@ router.get("/me/profile", authenticate, authorize("driver"), async (req, res, ne
   try {
     const Driver = require("../models/Driver");
     const driver = await Driver.findOne({ user: req.user._id });
-    if (!driver) return res.status(404).json({ success: false, message: "No fleet profile linked to this account." });
+    // Signup creates an account, not an invented vehicle or service zone. Fleet
+    // staff can link the real roster profile later through the existing API.
+    if (!driver) return res.json({ success: true, data: null, message: "Your fleet profile has not been configured yet." });
     res.json({ success: true, data: driver.toFrontendObject() });
   } catch (error) { next(error); }
 });

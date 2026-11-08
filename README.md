@@ -23,7 +23,9 @@ An ignored local `.env` has already been generated for this workspace; do not ov
 
 ## Accounts and permissions
 
-Public signup supports customers and merchants. Administrator, logistics and driver accounts must be provisioned by an administrator. Selecting a role in the browser does not grant access; it must match the stored account role.
+Public signup always supports `customer` and `merchant`. Explicitly setting `ALLOW_PUBLIC_STAFF_SIGNUP=true` also permits `driver` and `logistics` self-registration for local development and academic demonstrations. The setting defaults to `false`, including production, and should remain disabled in production. Public signup never creates an `administrator`; that role always requires secure bootstrap or administrator provisioning.
+
+The server checks the selected role against the enabled signup allowlist, stores that role in MongoDB, hashes the password, and issues a JWT using the stored role. Client-supplied permissions cannot grant additional access. Selecting a different role at login does not change account permissions; it must match the stored account role.
 
 To bootstrap one administrator, explicitly supply operator-chosen credentials. The script refuses to overwrite any existing account and creates no example shipments or users:
 
@@ -36,7 +38,7 @@ Remove-Item Env:BOOTSTRAP_ADMIN_PASSWORD
 
 Sign in as that administrator. Team & access can create users, including privileged accounts, and change account status. Fleet management can create driver accounts with an explicit password, or `POST /api/drivers` can link an existing driver user via `userId`. Never reuse a default or example password. The seed script does not run automatically.
 
-Customer/merchant access is tied to stored sender, merchant or creator IDs; drivers see assignments through their linked fleet profile ID. Legacy records that only store a name must be linked to the correct account by an operator. No automatic name matching or destructive migration is performed.
+Customer/merchant access is tied to stored sender, merchant or creator IDs; drivers see assignments through their linked fleet profile ID. A self-registered driver account can open the original driver dashboard immediately; a fleet profile with real vehicle and service-zone details must be linked before delivery assignment. Signup does not invent vehicles or assignments. Legacy records that only store a name must be linked to the correct account by an operator. No automatic name matching or destructive migration is performed.
 
 ## Workflows
 
@@ -56,6 +58,7 @@ Use Node.js 22+ and MongoDB. The backend connects before listening and creates d
 Set-Location Back-End
 Copy-Item .env.example .env
 # Edit JWT_SECRET and MONGODB_URI. Use a local MongoDB or a private connection URI.
+# To allow driver/logistics demo signup, set ALLOW_PUBLIC_STAFF_SIGNUP=true in Back-End/.env.
 npm.cmd ci
 npm.cmd run dev
 ```
@@ -88,7 +91,7 @@ docker compose exec -T frontend nginx -t
 node scripts/docker-smoke.cjs
 ```
 
-Backend tests always create an isolated ephemeral MongoDB; no configured development database is cleared. First run may download a MongoDB binary. Browser tests start their own ephemeral API/database on 5055 and Vite servers on 5179/5181; those ports must be free. Chromium must be installed. UI checks extract original commit `6e80818` under ignored `.artifacts`, compare welcome pixels, auth geometry, all five dashboard shells, stylesheet bytes and mobile overflow. The Git history containing that baseline must be available (CI uses full checkout).
+Backend tests always create an isolated ephemeral MongoDB; no configured development database is cleared. First run may download a MongoDB binary. Browser tests start their own ephemeral APIs/databases on 5055/5056 (signup disabled/enabled) and Vite servers on 5179/5180/5181; those ports must be free. Chromium must be installed. UI checks extract original commit `6e80818` under ignored `.artifacts`, compare welcome pixels, auth geometry, all five dashboard shells, stylesheet bytes and mobile overflow. The Git history containing that baseline must be available (CI uses full checkout).
 
 Browser screenshots and failure traces are in `Front-End/.artifacts`; coverage is in `Back-End/coverage`. Neither is committed. Legacy Cypress files are optional and require separately installed Cypress plus explicit `ADMIN_EMAIL`/`ADMIN_PASSWORD`; the supported automated suite is Playwright.
 
@@ -121,26 +124,41 @@ Work is developed on `routeflow-v2` in logical database, backend, frontend, DevO
 - API 401/expired token: sign in again. 403: use the matching stored role and an authorized account.
 - Database readiness 503: inspect the backend MongoDB URI/network and MongoDB health. Do not remove the named volume.
 - Blank deliveries: check API errors first; an empty authorized database correctly contains no example records.
-- Staff signup rejected: bootstrap an administrator, then provision through Team & access or the administrator API.
+- Driver/logistics signup rejected: for a local demo, set `ALLOW_PUBLIC_STAFF_SIGNUP=true` in root `.env` and recreate the Docker backend; for standalone development, set it in `Back-End/.env` and restart the API. With the setting disabled, use administrator provisioning. Administrator public signup is always rejected.
 - Frontend-only Compose in `Front-End/` lacks the backend network; use the root Compose file for the full stack.
 - Dependency audit: frontend and backend production dependencies passed the latest local audit. Six low-severity findings remain in the Jest/deepmerge development dependency chain; npm's proposed fix downgrades Jest across major versions and was not forced.
 
-## Create a local Logistics Manager / Operations Staff account
+## Enable local self-registration for all non-admin roles
 
-The original signup dropdown retains all five roles. Selecting logistics on public signup gives an explicit Role error explaining administrator approval; it never grants staff access.
+The original signup dropdown retains all five roles. To allow Customer, Merchant, Driver and Logistics Manager self-registration in this local Docker demo, add or update this line in the existing root `.env` without replacing its secrets or `BACKEND_PORT=5001` override:
 
-If you already have an administrator account, the quickest UI flow is: Sign in as System Administrator -> Team & access -> Create account -> enter name/email/initial password -> select `logistics` -> Create user -> Sign out. Then choose Logistics Manager / Operations Staff on Sign in, enter the new credentials, and the original Operations dashboard opens automatically. Deliveries, New delivery, Fleet management and Analytics & reports are available; administrator-only user management remains forbidden.
+```dotenv
+ALLOW_PUBLIC_STAFF_SIGNUP=true
+```
 
-Alternatively, use the local administrator-approved helper, which prompts for passwords without storing them in files or command arguments:
+Then rebuild/recreate the application:
 
 ```powershell
 Set-Location C:\DEvops\routeflow-v2
 docker compose up -d --build frontend backend mongodb
+docker compose ps
+```
+
+Open http://localhost:8080 -> Sign up -> enter your name -> choose Customer / Sender, Business Client / Merchant, Delivery Driver / Courier, or Logistics Manager / Operations Staff -> enter an email and password (8+ characters) -> confirm the password -> Create account. The original role-specific dashboard opens automatically. After signing out, use Sign in, select the same role, and enter the registered credentials. Each account and its selected role are saved in MongoDB; JWTs contain that stored role.
+
+The local ignored `.env` opts into this demonstration mode. Both tracked `.env.example` files default the setting to `false`; production remains disabled unless an operator explicitly overrides it. Docker uses production-mode containers even for local demos, so Compose passes this flag explicitly rather than enabling signup based on `NODE_ENV`. Set the flag back to `false` and recreate the backend to stop new public staff registrations. Existing accounts and database records remain intact; changing the setting does not demote existing users.
+
+`administrator` remains in the original dropdown but is always rejected by public signup with a field-specific role error. Create an administrator using the explicit bootstrap in Accounts and permissions, or through an authenticated administrator's Team & access page. Unsupported roles and arbitrary client permissions are rejected or ignored according to the server allowlist.
+
+## Optional administrator-approved Logistics Manager provisioning
+
+When demo signup is disabled, an administrator can still create a manager through the existing UI: Sign in as System Administrator -> Team & access -> Create account -> enter name/email/initial password -> select `logistics` -> Create user -> Sign out. Then select Logistics Manager / Operations Staff on Sign in and use the created credentials. Deliveries, New delivery, Fleet management and Analytics & reports are available; administrator-only user management remains forbidden.
+
+The local administrator-approved helper remains available and prompts for passwords without storing them in files or command arguments:
+
+```powershell
+Set-Location C:\DEvops\routeflow-v2
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\New-LogisticsAccount.ps1 -Email logistics.local@routeflow.test
 ```
 
-Enter an **existing active administrator's** email/password, then choose and confirm a new manager password (8+ characters). The helper authenticates the administrator, calls the existing protected `/api/users` endpoint with `role: logistics`, and refuses to overwrite an existing email. It only connects to the local backend. On success, open http://localhost:8080 -> Sign in -> choose Logistics Manager / Operations Staff -> email `logistics.local@routeflow.test` -> use the manager password you chose. The account is stored in MongoDB; normal login issues a JWT with role `logistics`.
-
-If there is no administrator yet, first run the explicit administrator bootstrap documented in Accounts and permissions above; it requires your chosen email and a unique password of at least 12 characters. Then run this helper. No default staff password or public privilege grant is provided. This session tests bootstrap/provisioning using an isolated database; it does not create a staff account in your existing database without your administrator credentials.
-
-For a standalone local backend, set ADMIN_EMAIL, ADMIN_PASSWORD, LOGISTICS_EMAIL and LOGISTICS_PASSWORD temporarily in the process environment and run `npm.cmd run provision:logistics` from Back-End. Optional LOGISTICS_NAME and LOCAL_API_URL (loopback only) are supported. Clear password environment variables afterwards.
+Enter an existing active administrator's email/password, then choose and confirm the manager password. The helper calls the protected `/api/users` endpoint with `role: logistics`, requires administrator authorization, and refuses to overwrite an existing email. If there is no administrator, first use the secure bootstrap documented above. For a standalone backend, temporarily set ADMIN_EMAIL, ADMIN_PASSWORD, LOGISTICS_EMAIL and LOGISTICS_PASSWORD and run `npm.cmd run provision:logistics` from Back-End; clear password variables afterwards. Optional LOGISTICS_NAME and loopback-only LOCAL_API_URL are supported.

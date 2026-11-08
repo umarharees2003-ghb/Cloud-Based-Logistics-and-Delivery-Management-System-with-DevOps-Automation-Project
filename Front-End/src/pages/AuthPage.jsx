@@ -171,7 +171,7 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
           )}
 
           <p className="auth-demo-note">
-            Customer and merchant accounts can sign up. Staff accounts require an administrator.
+            Staff signup is available when demo signup is enabled. Administrator accounts require provisioning.
           </p>
 
           <p className="auth-notice" role="alert" aria-live="polite">

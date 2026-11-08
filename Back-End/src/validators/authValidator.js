@@ -1,10 +1,12 @@
+const { getPublicSignupPolicy } = require("../utils/publicSignupPolicy");
+
 function validateRegister(data = {}) {
   const errors = [];
   const name = String(data.name || data.fullName || "").trim();
   const email = String(data.email || "").trim().toLowerCase();
   const password = String(data.password || "");
   const confirmPassword = data.confirmPassword !== undefined ? String(data.confirmPassword) : null;
-  const role = String(data.role || data.roleId || "").trim();
+  const policy = getPublicSignupPolicy(data);
 
   if (!name || name.length < 2) {
     errors.push({ field: "name", message: "Full name must be at least 2 characters long." });
@@ -23,17 +25,7 @@ function validateRegister(data = {}) {
     errors.push({ field: "confirmPassword", message: "Passwords do not match." });
   }
 
-  if (role && !["administrator", "logistics", "driver", "customer", "merchant"].includes(role)) errors.push({ field: "role", message: "Unsupported role." });
-
-  // Prevent privilege escalation in public registration
-  const privilegedRoles = ["administrator", "logistics", "driver"];
-  if (role && privilegedRoles.includes(role)) {
-    const roleLabel = { administrator: "System Administrator", logistics: "Logistics Manager / Operations Staff", driver: "Delivery Driver / Courier" }[role];
-    errors.push({
-      field: "role",
-      message: `Privileged accounts require administrator approval. Ask an administrator to create your ${roleLabel} account in Team & access (role: ${role}), then use Sign in. Public signup cannot grant staff privileges.`,
-    });
-  }
+  if (policy.error) errors.push({ field: "role", message: policy.error });
 
   return errors;
 }

@@ -4,7 +4,7 @@ Base: `/api` through Nginx, or `http://localhost:5000/api` directly. JSON reques
 
 | Method | Path | Access / behavior |
 | --- | --- | --- |
-| POST | /auth/register (also /auth/signup) | Public; name, email, password (8+ chars), optional confirmPassword, role (customer or merchant) |
+| POST | /auth/register (also /auth/signup) | Public; name, email, password (8+ chars), optional confirmPassword, role: customer/merchant by default; driver/logistics additionally allowed only with ALLOW_PUBLIC_STAFF_SIGNUP=true; administrator always forbidden |
 | POST | /auth/login | Public; email, password, optional roleId which must match the account |
 | GET / PATCH | /auth/me | Authenticated profile; PATCH only accepts name, phone, company |
 | POST | /auth/logout | Compatibility acknowledgement; browser deletes token. JWT remains valid until expiry; no server revocation list |
@@ -35,6 +35,10 @@ Base: `/api` through Nginx, or `http://localhost:5000/api` directly. JSON reques
 | GET | /metrics | Prometheus metrics; restrict access at infrastructure boundary when exposed publicly |
 
 List responses use `data: []`; delivery mutations/detail use `data: { ... }`. Delivery fields retain original UI names: `id` (SHP code), `_id` (MongoDB ID), `driver`, `status`, `route`, `eta`, `trackingNumber`, `statusHistory`. Authentication returns `user` and `token` at the top level.
+
+Public registration policy: `ALLOW_PUBLIC_STAFF_SIGNUP` defaults to false for every environment, including production. Only the explicit value `true` enables driver/logistics self-registration for local demonstrations. Administrator creation always requires the secure bootstrap or authenticated administrator `/users` provisioning, regardless of the flag. Unsupported roles never create an account. The server persists only an allowed selected role and generates the JWT from that MongoDB user; submitted permission lists or administrator flags do not grant authorization. Changing the flag controls future signup and does not modify existing accounts.
+
+A self-registered driver has a driver-role user account and can access the driver dashboard. A real linked fleet profile is required for assignments; public signup does not fabricate vehicle or fleet records.
 
 Ownership uses sender/merchant/creator account IDs; driver visibility uses assignedDriver linked to a User. Display names never authorize access. Legacy records with only names require an operator to link the correct account IDs; they are deliberately not exposed by matching names.
 

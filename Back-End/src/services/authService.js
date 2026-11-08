@@ -3,6 +3,7 @@ const ApiError = require("../utils/ApiError");
 const { generateToken } = require("../utils/generateToken");
 const notificationService = require("./notificationService");
 const logger = require("../config/logger");
+const { getPublicSignupPolicy } = require("../utils/publicSignupPolicy");
 
 class AuthService {
   /**
@@ -13,12 +14,9 @@ class AuthService {
   async register(data) {
     const email = String(data.email).trim().toLowerCase();
     const name = String(data.name || data.fullName).trim();
-    const roleInput = String(data.role || data.roleId || "customer").trim();
-
-    // Enforce role security: public register can only create customer or merchant
-    let finalRole = "customer";
-    if (roleInput === "merchant") {
-      finalRole = "merchant";
+    const policy = getPublicSignupPolicy(data);
+    if (policy.error) {
+      throw ApiError.unprocessable(`role: ${policy.error}`, [{ field: "role", message: policy.error }]);
     }
 
     const existingUser = await User.findOne({ email });
@@ -30,7 +28,7 @@ class AuthService {
       name,
       email,
       password: data.password,
-      role: finalRole,
+      role: policy.role,
       phone: data.phone || "",
       company: data.company || "",
       status: "active",
