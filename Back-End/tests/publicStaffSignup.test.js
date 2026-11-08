@@ -121,8 +121,19 @@ describe("Configurable public signup", () => {
   test("production configuration defaults to rejecting staff signup without explicit opt-in", () => {
     const childEnv = { ...process.env, NODE_ENV: "production", JWT_SECRET: "production_configuration_test_only_32_characters" };
     delete childEnv.ALLOW_PUBLIC_STAFF_SIGNUP;
+    delete childEnv.APP_ENV;
     const code = 'const config = require("./src/config/environment"); const { validateRegister } = require("./src/validators/authValidator"); if (!config.isProduction || config.allowPublicStaffSignup) process.exit(1); for (const role of ["driver", "logistics", "administrator"]) { const errors = validateRegister({ name: "Production Signup", email: "production@example.test", password: "Password123!", role }); if (!errors.some((error) => error.field === "role")) process.exit(2); }';
     const result = spawnSync(process.execPath, ["-e", code], { cwd: path.resolve(__dirname, ".."), env: childEnv, encoding: "utf8" });
     expect(result.status).toBe(0);
   });
+});
+
+test.each(["production", "staging"])("even an enabled flag cannot allow public staff signup for APP_ENV=%s", async (appEnv) => {
+  const original = process.env.APP_ENV;
+  process.env.APP_ENV = appEnv;
+  try {
+    process.env.ALLOW_PUBLIC_STAFF_SIGNUP = "true";
+    for (const role of ["driver", "logistics", "administrator"]) await request(app).post("/api/auth/register").send(payload(role)).expect(422);
+    expect(await User.countDocuments()).toBe(0);
+  } finally { if (original === undefined) delete process.env.APP_ENV; else process.env.APP_ENV = original; }
 });

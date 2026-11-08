@@ -1,10 +1,10 @@
 # Routeflow
 
-React 18 + Vite frontend, Express REST API, MongoDB/Mongoose persistence, JWT authentication, Nginx, Docker Compose, GitHub Actions, Prometheus and Grafana. The original UI stylesheet, welcome page, role selection, navigation and dashboard shells are preserved. All operational records come from the API; empty databases show empty states.
+React 18 + Vite frontend, Express REST API, MongoDB/Mongoose persistence, JWT authentication, Nginx, Docker Compose, GitHub Actions, Prometheus and Grafana. The original page structure, role selection, navigation and dashboard shells are preserved, with navy/ocean/teal styling and optimized local logistics photographs. All operational records come from the API; empty databases show empty states.
 
 ## Run with Docker (PowerShell)
 
-Requirements: Docker Desktop running with Linux containers, Docker Compose, and free ports 8080 and 5000. In this workspace port 5000 belongs to an existing Node service; the ignored local `.env` intentionally sets `BACKEND_PORT=5001`, as approved by the user. Nginx always uses `backend:5000` internally. The backend host port binds to loopback. Nginx replaces incoming forwarded client-IP headers and the Docker backend explicitly trusts one proxy hop for authentication rate limiting; local standalone backend defaults to zero trusted hops.
+Requirements: Docker Desktop running with Linux containers, Docker Compose, and free ports 8080 and 5001. In this workspace port 5000 belongs to an existing Node service; the ignored local `.env` intentionally sets `BACKEND_PORT=5001`, as approved by the user. Nginx always uses `backend:5000` internally. The backend host port binds to loopback. Nginx replaces incoming forwarded client-IP headers and the Docker backend explicitly trusts one proxy hop for authentication rate limiting; local standalone backend defaults to zero trusted hops.
 
 ```powershell
 Set-Location C:\DEvops\routeflow-v2
@@ -17,13 +17,13 @@ docker compose up -d --build frontend backend mongodb
 docker compose ps
 ```
 
-Open http://localhost:8080. Backend on http://localhost:5001 in this workspace, or http://localhost:5000 with the default host port. MongoDB is internal on port 27017. The persistent volume is `routeflow-v2_mongodb_data` when run from this workspace. `docker compose down` retains it. Never use `down -v` on data you need.
+Open http://localhost:8080. Backend on http://localhost:5001; its container-internal port remains5000. MongoDB is internal on port 27017. The persistent volume is `routeflow-v2_mongodb_data` when run from this workspace. `docker compose down` retains it. Never use `down -v` on data you need.
 
 An ignored local `.env` has already been generated for this workspace; do not overwrite it or commit it. A fresh environment must use its own secrets. Changing JWT_SECRET invalidates existing tokens. Compose passes only configured backend values; root `.env` is for Compose interpolation. Backend local development reads `Back-End/.env`.
 
 ## Accounts and permissions
 
-Public signup always supports `customer` and `merchant`. Explicitly setting `ALLOW_PUBLIC_STAFF_SIGNUP=true` also permits `driver` and `logistics` self-registration for local development and academic demonstrations. The setting defaults to `false`, including production, and should remain disabled in production. Public signup never creates an `administrator`; that role always requires secure bootstrap or administrator provisioning.
+Public signup always supports `customer` and `merchant`. Explicitly setting `ALLOW_PUBLIC_STAFF_SIGNUP=true` also permits `driver` and `logistics` self-registration for local development and academic demonstrations. The setting defaults to `false` and only works with `APP_ENV=development`. Production or staging deployment environments always reject public staff signup, even if the signup flag is accidentally set to true. Public signup never creates an `administrator`; that role always requires secure bootstrap or administrator provisioning.
 
 The server checks the selected role against the enabled signup allowlist, stores that role in MongoDB, hashes the password, and issues a JWT using the stored role. Client-supplied permissions cannot grant additional access. Selecting a different role at login does not change account permissions; it must match the stored account role.
 
@@ -48,7 +48,7 @@ Customer/merchant access is tied to stored sender, merchant or creator IDs; driv
 - Drivers: own assignments, status updates, saved route stops, fleet details and profile.
 - Administrators: operational tools plus account provisioning and status management.
 
-Select an order identifier to inspect tracking and history or edit/cancel when permitted. API errors are shown; failed mutations never update the UI as successful. Dashboard counts and weekly volume are aggregated from stored, authorized records. Average duration and ratings are shown as unavailable until measurements exist. The network map is a service-area illustration; live GPS, route optimization and external email are not configured.
+Select an order identifier to inspect tracking and history or edit/cancel when permitted. API errors are shown; failed mutations never update the UI as successful. Dashboard counts and weekly volume are aggregated from stored, authorized records. Average duration uses actual pickup-to-delivery timestamps (with available legacy history fallback); customer ratings remain unavailable until measurements exist. The network map is a service-area illustration; live GPS, route optimization and external email are not configured.
 
 ## Local development
 
@@ -58,7 +58,7 @@ Use Node.js 22+ and MongoDB. The backend connects before listening and creates d
 Set-Location Back-End
 Copy-Item .env.example .env
 # Edit JWT_SECRET and MONGODB_URI. Use a local MongoDB or a private connection URI.
-# To allow driver/logistics demo signup, set ALLOW_PUBLIC_STAFF_SIGNUP=true in Back-End/.env.
+# Local driver/logistics demos require APP_ENV=development and ALLOW_PUBLIC_STAFF_SIGNUP=true in Back-End/.env.
 npm.cmd ci
 npm.cmd run dev
 ```
@@ -91,11 +91,11 @@ docker compose exec -T frontend nginx -t
 node scripts/docker-smoke.cjs
 ```
 
-Backend tests always create an isolated ephemeral MongoDB; no configured development database is cleared. First run may download a MongoDB binary. Browser tests start their own ephemeral APIs/databases on 5055/5056 (signup disabled/enabled) and Vite servers on 5179/5180/5181; those ports must be free. Chromium must be installed. UI checks extract original commit `6e80818` under ignored `.artifacts`, compare welcome pixels, auth geometry, all five dashboard shells, stylesheet bytes and mobile overflow. The Git history containing that baseline must be available (CI uses full checkout).
+Backend tests always create an isolated ephemeral MongoDB; no configured development database is cleared. First run may download a MongoDB binary. Browser tests start their own ephemeral APIs/databases on 5055/5056 (signup disabled/enabled) and Vite servers on 5179/5180/5181; those ports must be free. Chromium must be installed. UI checks extract original commit `6e80818` under ignored `.artifacts`, compare original controls/forms/navigation/shell geometry, verify the requested palette, compare enhanced desktop visual snapshots, and check mobile/tablet overflow. The Git history containing that baseline must be available (CI uses full checkout).
 
 Browser screenshots and failure traces are in `Front-End/.artifacts`; coverage is in `Back-End/coverage`. Neither is committed. Legacy Cypress files are optional and require separately installed Cypress plus explicit `ADMIN_EMAIL`/`ADMIN_PASSWORD`; the supported automated suite is Playwright.
 
-The Docker smoke script creates one uniquely named test account and shipment, then restarts this project's MongoDB/backend to verify persistence. Run it against a local test stack. It never deletes data or volumes.
+The Docker smoke script starts its own isolated Compose project using the current built images, creates disposable test users/deliveries, and verifies database/backend restart persistence. It never touches the running project records or removes existing volumes. Its uniquely named test volume is retained and printed for review. Use `node scripts/docker-smoke.cjs --proxy-only` for a read-only check of the running local stack.
 
 ## API
 
@@ -124,7 +124,7 @@ Work is developed on `routeflow-v2` in logical database, backend, frontend, DevO
 - API 401/expired token: sign in again. 403: use the matching stored role and an authorized account.
 - Database readiness 503: inspect the backend MongoDB URI/network and MongoDB health. Do not remove the named volume.
 - Blank deliveries: check API errors first; an empty authorized database correctly contains no example records.
-- Driver/logistics signup rejected: for a local demo, set `ALLOW_PUBLIC_STAFF_SIGNUP=true` in root `.env` and recreate the Docker backend; for standalone development, set it in `Back-End/.env` and restart the API. With the setting disabled, use administrator provisioning. Administrator public signup is always rejected.
+- Driver/logistics signup rejected: for a local demo, set `APP_ENV=development` and `ALLOW_PUBLIC_STAFF_SIGNUP=true` in root `.env` and recreate the Docker backend; for standalone development, set both values in `Back-End/.env` and restart the API. With the setting disabled, use administrator provisioning. Administrator public signup is always rejected.
 - Frontend-only Compose in `Front-End/` lacks the backend network; use the root Compose file for the full stack.
 - Dependency audit: frontend and backend production dependencies passed the latest local audit. Six low-severity findings remain in the Jest/deepmerge development dependency chain; npm's proposed fix downgrades Jest across major versions and was not forced.
 
@@ -133,6 +133,7 @@ Work is developed on `routeflow-v2` in logical database, backend, frontend, DevO
 The original signup dropdown retains all five roles. To allow Customer, Merchant, Driver and Logistics Manager self-registration in this local Docker demo, add or update this line in the existing root `.env` without replacing its secrets or `BACKEND_PORT=5001` override:
 
 ```dotenv
+APP_ENV=development
 ALLOW_PUBLIC_STAFF_SIGNUP=true
 ```
 
@@ -146,7 +147,7 @@ docker compose ps
 
 Open http://localhost:8080 -> Sign up -> enter your name -> choose Customer / Sender, Business Client / Merchant, Delivery Driver / Courier, or Logistics Manager / Operations Staff -> enter an email and password (8+ characters) -> confirm the password -> Create account. The original role-specific dashboard opens automatically. After signing out, use Sign in, select the same role, and enter the registered credentials. Each account and its selected role are saved in MongoDB; JWTs contain that stored role.
 
-The local ignored `.env` opts into this demonstration mode. Both tracked `.env.example` files default the setting to `false`; production remains disabled unless an operator explicitly overrides it. Docker uses production-mode containers even for local demos, so Compose passes this flag explicitly rather than enabling signup based on `NODE_ENV`. Set the flag back to `false` and recreate the backend to stop new public staff registrations. Existing accounts and database records remain intact; changing the setting does not demote existing users.
+The local ignored `.env` opts into this demonstration mode. Both tracked `.env.example` files default staff signup to `false`. The root example defaults `APP_ENV` to production. Local demos explicitly use `APP_ENV=development` and the signup flag together; `NODE_ENV=production` remains the optimized container runtime setting. Production/staging `APP_ENV` values prohibit staff signup regardless of the flag. Set the flag back to `false` and recreate the backend to stop new public staff registrations. Existing accounts and database records remain intact; changing the setting does not demote existing users.
 
 `administrator` remains in the original dropdown but is always rejected by public signup with a field-specific role error. Create an administrator using the explicit bootstrap in Accounts and permissions, or through an authenticated administrator's Team & access page. Unsupported roles and arbitrary client permissions are rejected or ignored according to the server allowlist.
 
@@ -162,3 +163,15 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\New-LogisticsA
 ```
 
 Enter an existing active administrator's email/password, then choose and confirm the manager password. The helper calls the protected `/api/users` endpoint with `role: logistics`, requires administrator authorization, and refuses to overwrite an existing email. If there is no administrator, first use the secure bootstrap documented above. For a standalone backend, temporarily set ADMIN_EMAIL, ADMIN_PASSWORD, LOGISTICS_EMAIL and LOGISTICS_PASSWORD and run `npm.cmd run provision:logistics` from Back-End; clear password variables afterwards. Optional LOGISTICS_NAME and loopback-only LOCAL_API_URL are supported.
+
+## Enhancement review and manual checks (uncommitted working tree)
+
+This enhancement intentionally makes no Git metadata changes: no staging, commits, branch operations, pushes, or remote workflows. Review with `git diff` and commit manually when ready.
+
+Palette: Navy #102A43, Ocean #176B91, Teal #13B8A6, Background #F3F7FA and White #FFFFFF. Original buttons, forms, pages and five dashboards remain. Photo sources, license links and optimized sizes are documented in [IMAGE_LICENSES.md](IMAGE_LICENSES.md). Existing JPEG files are retained; current screens use the licensed local WebP assets.
+
+Deliveries now record typed creation/edit/assignment/status events plus assigned/pickup/delivered/cancelled timestamps, avoid duplicate history for repeated requests, and return a conflict for concurrent saves. Status transitions, ownership and private tracking data remain enforced. API errors and HTTP logs include server-generated request IDs; logs redact nested credentials, bearer tokens and database passwords. Production unexpected errors return generic messages.
+
+After starting Docker, visit localhost:8080 and check desktop/mobile welcome/login. Sign up for a permitted role, sign out and sign back in with the same role. As Logistics, create a delivery, add/link a real driver profile, assign it and update through In transit -> Out for delivery -> Delivered. Check tracking/history, terminal status protection and reports. Refresh to confirm saved state. New drivers start with empty assignments until a real fleet profile is linked. Account data and existing MongoDB volumes are preserved.
+
+Reviewed Windows pixel snapshots live alongside ui-preservation.spec.js snapshots. Exact pixel checks run on Windows; other platforms run the portable structure, palette, photo and responsiveness checks without comparing different operating-system font rendering. When intentionally changing the visual design, review new screenshot artifacts before using `npm.cmd test -- --update-snapshots`; ordinary runs compare the saved references. No Git write occurs when these files are generated.
