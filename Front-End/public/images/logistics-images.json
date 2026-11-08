@@ -1,0 +1,38 @@
+[
+  {
+    "filename": "logistics-truck.webp",
+    "width": 1400,
+    "height": 2099,
+    "bytes": 93734
+  },
+  {
+    "filename": "logistics-truck-800.webp",
+    "width": 800,
+    "height": 1200,
+    "bytes": 45788
+  },
+  {
+    "filename": "logistics-warehouse.webp",
+    "width": 1400,
+    "height": 934,
+    "bytes": 233972
+  },
+  {
+    "filename": "logistics-warehouse-800.webp",
+    "width": 800,
+    "height": 534,
+    "bytes": 112554
+  },
+  {
+    "filename": "logistics-port.webp",
+    "width": 1400,
+    "height": 933,
+    "bytes": 264784
+  },
+  {
+    "filename": "logistics-port-800.webp",
+    "width": 800,
+    "height": 533,
+    "bytes": 118692
+  }
+]

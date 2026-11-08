@@ -1,0 +1,10 @@
+const { execFileSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+const root = path.resolve(__dirname, "../..");
+const output = path.resolve(root, "Front-End/.artifacts/baseline");
+fs.mkdirSync(output, { recursive: true });
+const archive = execFileSync("git", ["archive", "6e80818", "Front-End/src", "Front-End/public", "Front-End/index.html", "Front-End/vite.config.js"], { cwd: root, maxBuffer: 32 * 1024 * 1024 });
+execFileSync("tar", ["-xf", "-", "-C", output], { input: archive });
+const modules = path.join(output, "Front-End/node_modules");
+if (!fs.existsSync(modules)) fs.symlinkSync(path.resolve(root, "Front-End/node_modules"), modules, "junction");
