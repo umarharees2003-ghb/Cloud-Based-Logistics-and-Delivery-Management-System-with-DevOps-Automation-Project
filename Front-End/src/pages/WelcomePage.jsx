@@ -1,8 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import BrandMark from "../components/BrandMark";
 import { welcomeFeatures } from "../data/demoData";
 
 export default function WelcomePage({ onAuth }) {
+  const [allowMotion, setAllowMotion] = useState(() =>
+    typeof window === "undefined"
+      ? true
+      : !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  const [videoAvailable, setVideoAvailable] = useState(true);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateMotionPreference = (event) => setAllowMotion(!event.matches);
+
+    mediaQuery.addEventListener("change", updateMotionPreference);
+    return () => mediaQuery.removeEventListener("change", updateMotionPreference);
+  }, []);
+
   return (
     <div className="welcome-shell">
       <header className="welcome-topbar">
@@ -35,18 +50,33 @@ export default function WelcomePage({ onAuth }) {
 
       <main>
         <section className="welcome-content" id="welcome-overview">
+          <div className="welcome-hero-media" aria-hidden="true">
+            {allowMotion && videoAvailable && (
+              <video
+                className="welcome-hero-video"
+                autoPlay
+                muted
+                loop
+                playsInline
+                poster="/images/logistics-truck.webp"
+                preload="metadata"
+                onError={() => setVideoAvailable(false)}
+              >
+                <source src="/videos/logistics-hero.mp4" type="video/mp4" />
+              </video>
+            )}
+          </div>
           <div className="welcome-copy">
             <span className="eyebrow dark-eyebrow">
               <span className="eyebrow-dot" />
               LOGISTICS, WITHOUT THE GUESSWORK
             </span>
             <h1>
-              Make every mile
-              <span> work smarter.</span>
+              Delivering a smarter
+              <span className="welcome-accent"> tomorrow.</span>
             </h1>
             <p>
-              Bring orders, routes, drivers, and customer updates together in one
-              clear view—and keep your operation moving when the unexpected happens.
+              One connected platform for deliveries, drivers, fleet operations and shipment management.
             </p>
             <div className="welcome-cta-row">
               <button
@@ -173,6 +203,46 @@ export default function WelcomePage({ onAuth }) {
               </article>
             ))}
           </div>
+          <ul className="welcome-capabilities" aria-label="Routeflow platform capabilities">
+            <li>Delivery management</li>
+            <li>Shipment status tracking</li>
+            <li>Driver and fleet coordination</li>
+            <li>Analytics and operational reporting</li>
+            <li>Role-based dashboards</li>
+            <li>Docker-ready operations platform</li>
+          </ul>
+        </section>
+
+        <section className="welcome-workflow" aria-labelledby="welcome-workflow-title">
+          <div className="welcome-workflow-heading">
+            <span className="eyebrow dark-eyebrow">
+              <span className="eyebrow-dot" />
+              FROM BOOKING TO COMPLETION
+            </span>
+            <h2 id="welcome-workflow-title">How Routeflow works</h2>
+          </div>
+          <ol className="welcome-workflow-grid">
+            <li>
+              <span>01</span>
+              <strong>Create a shipment</strong>
+              <p>Enter delivery details and prepare the shipment for dispatch.</p>
+            </li>
+            <li>
+              <span>02</span>
+              <strong>Assign a driver</strong>
+              <p>Coordinate the right driver and vehicle for the route.</p>
+            </li>
+            <li>
+              <span>03</span>
+              <strong>Update and track status</strong>
+              <p>Keep the delivery status current as it moves through operations.</p>
+            </li>
+            <li>
+              <span>04</span>
+              <strong>Confirm completion</strong>
+              <p>Close the delivery when the shipment reaches its destination.</p>
+            </li>
+          </ol>
         </section>
 
         <section className="welcome-contact" id="welcome-contact">
@@ -200,4 +270,3 @@ export default function WelcomePage({ onAuth }) {
     </div>
   );
 }
-
