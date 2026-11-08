@@ -21,6 +21,7 @@ const reportRoutes = require("./routes/reportRoutes");
 const deliveryController = require("./controllers/deliveryController");
 
 const app = express();
+app.disable("x-powered-by");
 
 // 1. Prometheus Metrics Setup
 const register = new client.Registry();

@@ -10,9 +10,17 @@ const {
 
 const router = express.Router();
 
+router.get("/me/profile", authenticate, authorize("driver"), async (req, res, next) => {
+  try {
+    const Driver = require("../models/Driver");
+    const driver = await Driver.findOne({ user: req.user._id });
+    if (!driver) return res.status(404).json({ success: false, message: "No fleet profile linked to this account." });
+    res.json({ success: true, data: driver.toFrontendObject() });
+  } catch (error) { next(error); }
+});
 router.get("/", authenticate, authorize("administrator", "logistics"), driverController.getDrivers);
 router.get("/:id", authenticate, driverController.getDriverById);
-router.get("/:id/deliveries", optionalAuthenticate, driverController.getDriverDeliveries);
+router.get("/:id/deliveries", authenticate, driverController.getDriverDeliveries);
 
 // Protected mutation routes
 router.post(

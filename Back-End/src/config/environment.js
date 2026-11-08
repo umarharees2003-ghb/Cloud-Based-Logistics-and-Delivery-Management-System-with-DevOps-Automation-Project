@@ -12,8 +12,7 @@ const environment = {
   mongodbUri:
     process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/routeflow",
   jwtSecret:
-    process.env.JWT_SECRET ||
-    "fallback_academic_devops_secret_do_not_use_in_production_key_78",
+    process.env.JWT_SECRET || (process.env.NODE_ENV === "test" ? "test_only_routeflow_secret_32_characters" : require("crypto").randomBytes(48).toString("hex")),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   frontendOrigins: (
     process.env.FRONTEND_ORIGIN ||
@@ -26,7 +25,7 @@ const environment = {
   bootstrapAdmin: {
     name: process.env.BOOTSTRAP_ADMIN_NAME || "System Administrator",
     email: (process.env.BOOTSTRAP_ADMIN_EMAIL || "admin@routeflow.io").toLowerCase().trim(),
-    password: process.env.BOOTSTRAP_ADMIN_PASSWORD || "AdminRouteflow2026!",
+    password: process.env.BOOTSTRAP_ADMIN_PASSWORD,
     phone: process.env.BOOTSTRAP_ADMIN_PHONE || "+1-555-0199",
   },
 };

@@ -43,6 +43,14 @@ router.post(
 );
 
 router.get("/me", authenticate, authController.getCurrentUser);
+router.patch("/me", authenticate, async (req, res, next) => {
+  try {
+    const updates = {};
+    for (const key of ["name", "phone", "company"]) if (req.body[key] !== undefined) updates[key] = req.body[key];
+    const user = await require("../services/userService").updateUser(req.user._id, updates);
+    res.json({ success: true, user });
+  } catch (error) { next(error); }
+});
 router.post("/logout", authController.logout);
 
 module.exports = router;

@@ -49,6 +49,8 @@ router.patch(
   deliveryController.assignDriver
 );
 
+router.patch("/:id", authenticate, authorize("administrator", "logistics", "merchant", "customer"), deliveryController.updateDelivery);
+
 // Cancellation
 router.delete("/:id", authenticate, deliveryController.cancelDelivery);
 

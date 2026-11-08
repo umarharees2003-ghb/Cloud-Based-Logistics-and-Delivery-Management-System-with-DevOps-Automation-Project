@@ -5,6 +5,13 @@ const ApiError = require("../utils/ApiError");
 const notificationService = require("./notificationService");
 
 class DriverService {
+  async assertAccess(id, user) {
+    const driver = await this.getDriverById(id);
+    if (!["administrator", "logistics"].includes(user.role) && driver.userId !== String(user._id)) {
+      throw ApiError.forbidden("Access denied to another driver's profile.");
+    }
+  }
+
   /**
    * Get all drivers in roster
    */
@@ -14,7 +21,10 @@ class DriverService {
     if (filter.zone) query.zone = filter.zone;
 
     const drivers = await Driver.find(query).sort({ name: 1 });
-    return drivers.map((d) => d.toFrontendObject());
+    return Promise.all(drivers.map(async (d) => ({
+      ...d.toFrontendObject(),
+      deliveries: await Delivery.countDocuments({ assignedDriver: d._id, status: { $nin: ["Delivered", "Cancelled"] } }),
+    })));
   }
 
   /**
@@ -47,16 +57,18 @@ class DriverService {
 
     if (!user) {
       // Auto-create driver user if details supplied
-      const driverEmail = data.email || `${String(data.name).toLowerCase().replace(/\s+/g, ".")}@routeflow.io`;
+      if (!data.email || !data.password || String(data.password).length < 8) throw ApiError.badRequest("Email and a password of at least 8 characters are required.");
+      const driverEmail = data.email;
       user = await User.create({
         name: data.name,
         email: driverEmail,
-        password: data.password || "DriverPass2026!",
+        password: data.password,
         role: "driver",
         phone: data.phone || "",
       });
     }
 
+    if (user.role !== "driver") throw ApiError.badRequest("User must have the driver role.");
     const existing = await Driver.findOne({ user: user._id });
     if (existing) {
       throw ApiError.conflict("A driver profile already exists for this user.");
@@ -139,13 +151,8 @@ class DriverService {
    * Get deliveries assigned to a driver
    */
   async getDriverDeliveries(driverIdOrName) {
-    let driverName = driverIdOrName;
-    if (driverIdOrName.match(/^[0-9a-fA-F]{24}$/)) {
-      const driver = await Driver.findById(driverIdOrName);
-      if (driver) driverName = driver.name;
-    }
-
-    const deliveries = await Delivery.find({ driverName }).sort({ createdAt: -1 });
+    const driver = await this.getDriverById(driverIdOrName);
+    const deliveries = await Delivery.find({ assignedDriver: driver._id }).sort({ createdAt: -1 });
     return deliveries.map((d) => d.toFrontendObject());
   }
 }

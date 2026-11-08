@@ -83,15 +83,7 @@ class AuthService {
       throw ApiError.forbidden("Account is inactive or suspended. Please contact an administrator.");
     }
 
-    // Role verification note: if a roleId is supplied, verify if it matches or allow authorized switch
-    if (roleId && roleId !== user.role && user.role !== "administrator") {
-      logger.warn(
-        "User %s attempted login under role '%s' but possesses role '%s'",
-        user.email,
-        roleId,
-        user.role
-      );
-    }
+    if (roleId && roleId !== user.role) throw ApiError.forbidden("Selected role does not match your account.");
 
     const token = generateToken(user);
     logger.info("User logged in: %s (%s)", user.name, user.role);

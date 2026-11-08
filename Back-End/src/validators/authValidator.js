@@ -15,13 +15,15 @@ function validateRegister(data = {}) {
     errors.push({ field: "email", message: "Please provide a valid email address." });
   }
 
-  if (!password || password.length < 8) {
+  if (typeof data.password !== "string" || !password || password.length < 8) {
     errors.push({ field: "password", message: "Password must be at least 8 characters long." });
   }
 
   if (confirmPassword !== null && confirmPassword !== password) {
     errors.push({ field: "confirmPassword", message: "Passwords do not match." });
   }
+
+  if (role && !["administrator", "logistics", "driver", "customer", "merchant"].includes(role)) errors.push({ field: "role", message: "Unsupported role." });
 
   // Prevent privilege escalation in public registration
   const privilegedRoles = ["administrator", "logistics", "driver"];
@@ -44,7 +46,7 @@ function validateLogin(data = {}) {
     errors.push({ field: "email", message: "Email is required." });
   }
 
-  if (!password) {
+  if (typeof data.password !== "string" || !password) {
     errors.push({ field: "password", message: "Password is required." });
   }
 

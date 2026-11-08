@@ -56,6 +56,13 @@ class DeliveryController {
     }
   }
 
+  async updateDelivery(req, res, next) {
+    try {
+      const data = await deliveryService.updateDelivery(req.params.id, req.body, req.user);
+      res.json({ success: true, data });
+    } catch (error) { next(error); }
+  }
+
   async updateStatus(req, res, next) {
     try {
       const delivery = await deliveryService.updateStatus(
@@ -78,7 +85,7 @@ class DeliveryController {
 
   async assignDriver(req, res, next) {
     try {
-      const driverName = req.body.driver || req.body.driverName;
+      const driverName = req.body.driverId || req.body.driver || req.body.driverName;
       const delivery = await deliveryService.assignDriver(
         req.params.id,
         driverName,

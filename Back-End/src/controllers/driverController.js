@@ -17,6 +17,7 @@ class DriverController {
 
   async getDriverById(req, res, next) {
     try {
+      await driverService.assertAccess(req.params.id, req.user);
       const driver = await driverService.getDriverById(req.params.id);
       res.status(200).json({
         success: true,
@@ -55,6 +56,7 @@ class DriverController {
 
   async updateAvailability(req, res, next) {
     try {
+      await driverService.assertAccess(req.params.id, req.user);
       const driver = await driverService.toggleDriverStatus(
         req.params.id,
         req.body.status
@@ -71,6 +73,7 @@ class DriverController {
 
   async getDriverDeliveries(req, res, next) {
     try {
+      await driverService.assertAccess(req.params.id, req.user);
       const deliveries = await driverService.getDriverDeliveries(req.params.id);
       res.status(200).json({
         success: true,

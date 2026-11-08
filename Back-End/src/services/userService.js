@@ -16,7 +16,9 @@ class UserService {
       ];
     }
 
-    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    page = Math.max(1, parseInt(page, 10) || 1);
+    limit = Math.min(500, Math.max(1, parseInt(limit, 10) || 50));
+    const skip = (page - 1) * limit;
     const [users, total] = await Promise.all([
       User.find(filter)
         .sort({ createdAt: -1 })

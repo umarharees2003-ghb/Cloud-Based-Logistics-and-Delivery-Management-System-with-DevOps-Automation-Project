@@ -1,14 +1,15 @@
 const express = require("express");
 const reportController = require("../controllers/reportController");
-const { optionalAuthenticate } = require("../middleware/authenticate");
+const { authenticate } = require("../middleware/authenticate");
 
+const authorize = require("../middleware/authorize");
 const router = express.Router();
 
-router.use(optionalAuthenticate);
+router.use(authenticate);
 
 router.get("/overview", reportController.getOverview);
 router.get("/deliveries", reportController.getDeliveries);
-router.get("/drivers", reportController.getDrivers);
+router.get("/drivers", authorize("administrator", "logistics"), reportController.getDrivers);
 
 module.exports = router;
 

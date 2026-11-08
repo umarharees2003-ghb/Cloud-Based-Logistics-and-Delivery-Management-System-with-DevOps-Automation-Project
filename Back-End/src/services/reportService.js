@@ -1,22 +1,13 @@
 const Delivery = require("../models/Delivery");
 const Driver = require("../models/Driver");
-const User = require("../models/User");
+const deliveryScope = require("./deliveryScope");
 
 class ReportService {
   /**
    * Get high-level operational summary
    */
   async getDashboardSummary(user = null) {
-    const filter = {};
-    if (user) {
-      if (user.role === "customer") {
-        filter.$or = [{ sender: user._id }, { customer: user.name }];
-      } else if (user.role === "merchant") {
-        filter.$or = [{ merchant: user._id }, { sender: user._id }, { customer: user.name }];
-      } else if (user.role === "driver") {
-        filter.driverName = user.name;
-      }
-    }
+    const filter = await deliveryScope(user);
 
     const [
       totalDeliveries,
@@ -31,20 +22,15 @@ class ReportService {
       Delivery.countDocuments({ ...filter, status: "Delivered" }),
       Delivery.countDocuments({ ...filter, status: "Delayed" }),
       Delivery.countDocuments({ ...filter, status: "Pending" }),
-      Driver.countDocuments({ status: { $ne: "Unavailable" } }),
+      ["administrator", "logistics"].includes(user.role) ? Driver.countDocuments({ status: { $ne: "Unavailable" } }) : Promise.resolve(0),
     ]);
-
-    const onTimeRate =
-      totalDeliveries > 0
-        ? (((totalDeliveries - delayed) / totalDeliveries) * 100).toFixed(1)
-        : "100.0";
 
     return {
       metrics: [
         {
           label: "Total deliveries",
           value: totalDeliveries.toLocaleString(),
-          delta: "+12.8%",
+          delta: "All recorded shipments",
           icon: "↗",
           tone: "mint",
         },
@@ -56,9 +42,9 @@ class ReportService {
           tone: "blue",
         },
         {
-          label: "Delivered today",
+          label: "Delivered",
           value: delivered.toLocaleString(),
-          delta: `${onTimeRate}% on time`,
+          delta: "Completed shipments",
           icon: "✓",
           tone: "purple",
         },
@@ -85,16 +71,7 @@ class ReportService {
    * Weekly shipment volume aggregated for the chart
    */
   async getWeeklyVolume(user = null) {
-    const filter = {};
-    if (user) {
-      if (user.role === "customer") {
-        filter.$or = [{ sender: user._id }, { customer: user.name }];
-      } else if (user.role === "merchant") {
-        filter.$or = [{ merchant: user._id }, { sender: user._id }, { customer: user.name }];
-      } else if (user.role === "driver") {
-        filter.driverName = user.name;
-      }
-    }
+    const filter = await deliveryScope(user);
 
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
@@ -146,10 +123,10 @@ class ReportService {
       metrics: summary.metrics,
       weeklyVolume: volume,
       performance: {
-        successRate: "96.8%",
-        averageDeliveryTime: "2h 18m",
-        customerSatisfaction: "4.9 / 5",
-        totalRatings: 328,
+        successRate: summary.counts.total ? `${(summary.counts.delivered / summary.counts.total * 100).toFixed(1)}%` : "0%",
+        averageDeliveryTime: null,
+        customerSatisfaction: null,
+        totalRatings: 0,
       },
     };
   }

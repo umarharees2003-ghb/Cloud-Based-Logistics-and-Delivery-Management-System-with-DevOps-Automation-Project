@@ -1,5 +1,6 @@
 const Delivery = require("../models/Delivery");
 const Driver = require("../models/Driver");
+const deliveryScope = require("./deliveryScope");
 const User = require("../models/User");
 const ApiError = require("../utils/ApiError");
 const { generateTrackingNumber, generateDeliveryId } = require("../utils/generateTrackingNumber");
@@ -18,26 +19,14 @@ class DeliveryService {
     limit = 100,
     page = 1,
   } = {}) {
-    const filter = {};
+    const filter = await deliveryScope(user);
 
-    // Role-based data isolation
-    if (user) {
-      if (user.role === "customer") {
-        filter.$or = [{ sender: user._id }, { customer: user.name }];
-      } else if (user.role === "merchant") {
-        filter.$or = [{ merchant: user._id }, { sender: user._id }, { customer: user.name }];
-      } else if (user.role === "driver") {
-        filter.driverName = user.name;
-      }
-      // Administrator and logistics can see all deliveries
-    }
-
-    if (status && status !== "All statuses") {
+    if (typeof status === "string" && status !== "All statuses") {
       filter.status = status;
     }
 
-    if (search && search.trim()) {
-      const q = search.trim();
+    if (typeof search === "string" && search.trim()) {
+      const q = String(search).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const searchConditions = [
         { deliveryId: { $regex: q, $options: "i" } },
         { customer: { $regex: q, $options: "i" } },
@@ -54,7 +43,9 @@ class DeliveryService {
       }
     }
 
-    const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    page = Math.max(1, parseInt(page, 10) || 1);
+    limit = Math.min(500, Math.max(1, parseInt(limit, 10) || 100));
+    const skip = (page - 1) * limit;
     const [deliveries, total] = await Promise.all([
       Delivery.find(filter)
         .sort({ createdAt: -1 })
@@ -89,25 +80,9 @@ class DeliveryService {
       throw ApiError.notFound(`Delivery '${idOrCode}' not found`);
     }
 
-    // Authorization check for non-privileged roles
-    if (user && !["administrator", "logistics"].includes(user.role)) {
-      if (user.role === "driver" && delivery.driverName !== user.name) {
-        throw ApiError.forbidden("Access denied to unassigned delivery.");
-      }
-      if (
-        user.role === "customer" &&
-        delivery.customer !== user.name &&
-        String(delivery.sender) !== String(user._id)
-      ) {
-        throw ApiError.forbidden("Access denied to another customer's delivery.");
-      }
-      if (
-        user.role === "merchant" &&
-        String(delivery.merchant) !== String(user._id) &&
-        delivery.customer !== user.name
-      ) {
-        throw ApiError.forbidden("Access denied to another merchant's delivery.");
-      }
+    const scope = await deliveryScope(user);
+    if (!await Delivery.exists({ $and: [{ _id: delivery._id }, scope] })) {
+      throw ApiError.forbidden("Access denied to this delivery.");
     }
 
     return delivery.toFrontendObject();
@@ -117,9 +92,8 @@ class DeliveryService {
    * Create a new shipment / delivery
    */
   async createDelivery(data, creator = null) {
-    const totalCount = await Delivery.countDocuments();
-    const deliveryId = data.deliveryId || generateDeliveryId(totalCount);
-    const trackingNumber = data.trackingNumber || generateTrackingNumber();
+    const deliveryId = generateDeliveryId();
+    const trackingNumber = generateTrackingNumber();
 
     const pickup = String(data.pickup).trim();
     const dropoff = String(data.dropoff).trim();
@@ -139,16 +113,20 @@ class DeliveryService {
       deliveryId,
       trackingNumber,
       customer,
-      sender: creator && creator.role === "customer" ? creator._id : data.senderId,
-      merchant: creator && creator.role === "merchant" ? creator._id : data.merchantId,
+      sender: creator._id,
+      merchant: creator.role === "merchant" ? creator._id : undefined,
       pickup,
       dropoff,
       route,
       eta,
-      status: data.status || "Pending",
+      status: "Pending",
       priority: data.priority || "Standard",
-      driverName: data.driver || "Unassigned",
-      assignedDriver: data.assignedDriverId || null,
+      recipientName: data.recipientName,
+      recipientPhone: data.recipientPhone,
+      packageDescription: data.packageDescription,
+      weight: data.weight,
+      driverName: "Unassigned",
+      assignedDriver: null,
       city: data.city || "New York, NY",
       createdBy: creator ? creator._id : null,
       statusHistory: [initialHistory],
@@ -170,6 +148,20 @@ class DeliveryService {
     return delivery.toFrontendObject();
   }
 
+  async updateDelivery(id, updates, user) {
+    const current = await this.getDeliveryById(id, user);
+    if (!["administrator", "logistics"].includes(user.role) && current.status !== "Pending") {
+      throw ApiError.forbidden("Only pending shipments can be edited by their owner.");
+    }
+    const payload = {};
+    for (const key of ["customer", "pickup", "dropoff", "eta", "priority", "recipientName", "recipientPhone", "packageDescription", "weight", "city"]) {
+      if (updates[key] !== undefined) payload[key] = updates[key];
+    }
+    payload.route = `${payload.pickup || current.pickup} → ${payload.dropoff || current.dropoff}`;
+    const delivery = await Delivery.findByIdAndUpdate(current._id, payload, { new: true, runValidators: true });
+    return delivery.toFrontendObject();
+  }
+
   /**
    * Update shipment status
    */
@@ -185,14 +177,13 @@ class DeliveryService {
       throw ApiError.notFound(`Delivery '${idOrCode}' not found`);
     }
 
-    // Role permissions check
-    if (user) {
-      if (user.role === "customer") {
-        throw ApiError.forbidden("Customers cannot update delivery status.");
-      }
-      if (user.role === "driver" && delivery.driverName !== user.name) {
-        throw ApiError.forbidden("Drivers can only update their assigned deliveries.");
-      }
+    await this.getDeliveryById(idOrCode, user);
+    if (["customer", "merchant"].includes(user.role) &&
+        (status !== "Cancelled" || delivery.status !== "Pending")) {
+      throw ApiError.forbidden("Only pending shipments can be cancelled by their owner.");
+    }
+    if (user.role === "driver" && status === "Cancelled") {
+      throw ApiError.forbidden("Drivers cannot cancel shipments.");
     }
 
     // Transition validation
@@ -246,6 +237,7 @@ class DeliveryService {
       throw ApiError.notFound(`Delivery '${idOrCode}' not found`);
     }
 
+    if (["Delivered", "Cancelled"].includes(delivery.status)) throw ApiError.badRequest("Cannot assign a closed delivery.");
     if (driverNameOrId === "Unassigned") {
       delivery.driverName = "Unassigned";
       delivery.assignedDriver = null;
@@ -259,12 +251,13 @@ class DeliveryService {
         throw ApiError.notFound(`Driver '${driverNameOrId}' not found in fleet roster.`);
       }
 
+      if (driver.status === "Unavailable") throw ApiError.badRequest("Driver is unavailable.");
+      const account = await User.findById(driver.user);
+      if (!account || account.role !== "driver" || account.status !== "active") throw ApiError.badRequest("Driver account is inactive.");
       delivery.driverName = driver.name;
       delivery.assignedDriver = driver._id;
 
-      // Update driver active delivery count
-      driver.deliveries = (driver.deliveries || 0) + 1;
-      await driver.save();
+
 
       // Notify the driver
       if (driver.user) {
@@ -298,7 +291,7 @@ class DeliveryService {
   async trackByTrackingNumber(trackingNumber) {
     const cleanNumber = String(trackingNumber).trim();
     const delivery = await Delivery.findOne({
-      $or: [{ trackingNumber: cleanNumber }, { deliveryId: cleanNumber }],
+      trackingNumber: cleanNumber,
     });
 
     if (!delivery) {
@@ -309,14 +302,12 @@ class DeliveryService {
       trackingNumber: delivery.trackingNumber,
       deliveryId: delivery.deliveryId,
       status: delivery.status,
-      route: delivery.route,
-      pickup: delivery.pickup,
-      dropoff: delivery.dropoff,
+
       eta: delivery.eta,
       statusHistory: delivery.statusHistory.map((h) => ({
         status: h.status,
         timestamp: h.timestamp,
-        remarks: h.remarks,
+
       })),
       lastUpdated: delivery.updatedAt,
     };
