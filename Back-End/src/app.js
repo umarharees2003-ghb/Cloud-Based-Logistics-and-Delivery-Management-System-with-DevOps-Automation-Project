@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const morgan = require("morgan");
+const { randomUUID } = require("node:crypto");
 const client = require("prom-client");
 
 const environment = require("./config/environment");
@@ -23,6 +23,11 @@ const deliveryController = require("./controllers/deliveryController");
 const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", environment.trustProxyHops);
+app.use((req, res, next) => {
+  req.id = randomUUID();
+  res.setHeader("X-Request-ID", req.id);
+  next();
+});
 
 // 1. Prometheus Metrics Setup
 const register = new client.Registry();
@@ -71,16 +76,18 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
-// 5. HTTP Request Logging via Morgan to Winston
-const morganFormat = environment.isProduction ? "combined" : "dev";
-app.use(
-  morgan(morganFormat, {
-    stream: {
-      write: (message) => logger.info(message.trim()),
-    },
-    skip: (req) => req.url === "/api/health" || req.url === "/metrics",
-  })
-);
+// 5. Structured HTTP logs never include request bodies, authorization or raw queries.
+app.use((req, res, next) => {
+  const started = process.hrtime.bigint();
+  res.on("finish", () => {
+    const requestPath = req.originalUrl.split("?")[0];
+    if (requestPath === "/api/health" || requestPath.startsWith("/api/health/") || requestPath === "/metrics") return;
+    logger.info("HTTP request", { requestId: req.id, method: req.method,
+      route: `${req.baseUrl || ""}${req.route?.path || "/unmatched"}`,
+      statusCode: res.statusCode, durationMs: Number(process.hrtime.bigint() - started) / 1e6 });
+  });
+  next();
+});
 
 // 6. Prometheus Metrics Interceptor
 app.use((req, res, next) => {
@@ -88,7 +95,7 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const diff = process.hrtime(start);
     const durationInSeconds = diff[0] + diff[1] / 1e9;
-    const route = req.route ? req.route.path : req.path;
+    const route = req.route ? `${req.baseUrl || ""}${req.route.path}` : "/unmatched";
     httpRequestDurationMicroseconds.labels(req.method, route, res.statusCode).observe(durationInSeconds);
     httpRequestsTotal.labels(req.method, route, res.statusCode).inc();
   });
@@ -98,7 +105,7 @@ app.use((req, res, next) => {
 // 7. Prometheus Metrics Endpoint
 app.get("/metrics", async (req, res) => {
   res.setHeader("Content-Type", register.contentType);
-  res.send(await register.metrics());
+  try { res.send(await register.metrics()); } catch (error) { res.status(503).send("Metrics unavailable"); }
 });
 
 // 8. API Routes Mounting

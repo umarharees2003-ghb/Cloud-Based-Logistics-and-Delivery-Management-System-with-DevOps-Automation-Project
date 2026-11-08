@@ -8,9 +8,13 @@ const environment = {
   nodeEnv: process.env.NODE_ENV || "development",
   isProduction: process.env.NODE_ENV === "production",
   isTest: process.env.NODE_ENV === "test",
-  // Staff signup is opt-in in every environment, including production.
+  // Deployment environment is separate from the optimized Node runtime mode.
+  // Local Docker demos opt into APP_ENV=development; production remains closed.
+  get appEnv() {
+    return process.env.APP_ENV || (process.env.NODE_ENV === "production" ? "production" : "development");
+  },
   get allowPublicStaffSignup() {
-    return process.env.ALLOW_PUBLIC_STAFF_SIGNUP === "true";
+    return this.appEnv === "development" && process.env.ALLOW_PUBLIC_STAFF_SIGNUP === "true";
   },
   trustProxyHops: Math.max(0, parseInt(process.env.TRUST_PROXY_HOPS || "0", 10) || 0),
   port: parseInt(process.env.PORT || "5000", 10),

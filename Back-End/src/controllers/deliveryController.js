@@ -18,6 +18,8 @@ class DeliveryController {
         deliveries: result.deliveries,
         total: result.total,
         page: result.page,
+        limit: result.limit,
+        pagination: { total: result.total, page: result.page, limit: result.limit, pages: Math.ceil(result.total / result.limit) },
       });
     } catch (error) {
       next(error);

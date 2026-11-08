@@ -14,7 +14,7 @@ function getPublicSignupPolicy(data = {}) {
   if (["driver", "logistics"].includes(role) && !environment.allowPublicStaffSignup) {
     return {
       role,
-      error: "Privileged accounts require administrator approval while public staff signup is disabled. Ask an administrator to provision this account, or enable ALLOW_PUBLIC_STAFF_SIGNUP=true in the local demo configuration, then register again.",
+      error: "Privileged accounts require administrator approval while public staff signup is disabled. Ask an administrator to provision this account, or set APP_ENV=development and ALLOW_PUBLIC_STAFF_SIGNUP=true in the local demo configuration, then register again.",
     };
   }
   return { role, error: null };

@@ -4,6 +4,7 @@ const ApiError = require("../utils/ApiError");
 
 // eslint-disable-next-line no-unused-vars
 function errorHandler(err, req, res, next) {
+  if (res.headersSent) return next(err);
   let error = err;
 
   // Handle Mongoose Validation Error
@@ -37,22 +38,24 @@ function errorHandler(err, req, res, next) {
 
   // Wrap unexpected errors into internal ApiError
   else if (!(error instanceof ApiError)) {
-    const statusCode = error.statusCode || 500;
+    const suppliedStatus = Number(error.statusCode || error.status);
+    const statusCode = Number.isInteger(suppliedStatus) && suppliedStatus >= 400 && suppliedStatus <= 599 ? suppliedStatus : 500;
     const message = error.message || "Internal server error";
     error = new ApiError(statusCode, message, [], false);
   }
 
   // Log error with Winston
   if (error.statusCode >= 500) {
-    logger.error("Unhandled Server Error: %s\n%s", error.message, err.stack);
+    logger.error("Request failed", { requestId: req.id, method: req.method, path: req.path, statusCode: error.statusCode, errorMessage: error.message, stack: err.stack });
   } else {
-    logger.warn("Client Error [%d %s]: %s", error.statusCode, req.path, error.message);
+    logger.warn("Request rejected", { requestId: req.id, method: req.method, path: req.path, statusCode: error.statusCode, errorMessage: error.message });
   }
 
   const response = {
     success: false,
     statusCode: error.statusCode,
-    message: error.message,
+    message: environment.isProduction && error.statusCode >= 500 ? "Internal server error" : error.message,
+    requestId: req.id || undefined,
     errors: error.errors || [],
   };
 

@@ -5,6 +5,7 @@ const authorize = require("../middleware/authorize");
 const validateRequest = require("../middleware/validateRequest");
 const {
   validateCreateDriver,
+  validateUpdateDriver,
   validateDriverStatus,
 } = require("../validators/driverValidator");
 
@@ -37,6 +38,7 @@ router.patch(
   "/:id",
   authenticate,
   authorize("administrator", "logistics"),
+  validateRequest(validateUpdateDriver),
   driverController.updateDriver
 );
 

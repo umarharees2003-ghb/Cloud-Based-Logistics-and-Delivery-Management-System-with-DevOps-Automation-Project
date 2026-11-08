@@ -2,7 +2,8 @@ const Driver = require("../models/Driver");
 const User = require("../models/User");
 const Delivery = require("../models/Delivery");
 const ApiError = require("../utils/ApiError");
-const notificationService = require("./notificationService");
+const { DRIVER_STATUSES, validateCreateDriver, validateUpdateDriver, validateDriverStatus } = require("../validators/driverValidator");
+function validate(errors) { if (errors.length) throw ApiError.unprocessable(errors.map(({ field, message }) => `${field}: ${message}`).join(" "), errors); }
 
 class DriverService {
   async assertAccess(id, user) {
@@ -17,14 +18,18 @@ class DriverService {
    */
   async getDrivers(filter = {}) {
     const query = {};
+    if (filter.status !== undefined && (!DRIVER_STATUSES.includes(filter.status) || typeof filter.status !== "string")) validate([{ field: "status", message: "Unsupported driver status." }]);
+    if (filter.zone !== undefined && (typeof filter.zone !== "string" || filter.zone.length > 100)) validate([{ field: "zone", message: "Zone must be text no longer than 100 characters." }]);
     if (filter.status) query.status = filter.status;
-    if (filter.zone) query.zone = filter.zone;
+    if (filter.zone) query.zone = filter.zone.trim();
 
     const drivers = await Driver.find(query).sort({ name: 1 });
-    return Promise.all(drivers.map(async (d) => ({
-      ...d.toFrontendObject(),
-      deliveries: await Delivery.countDocuments({ assignedDriver: d._id, status: { $nin: ["Delivered", "Cancelled"] } }),
-    })));
+    const workloads = await Delivery.aggregate([
+      { $match: { assignedDriver: { $in: drivers.map((driver) => driver._id) }, status: { $nin: ["Delivered", "Cancelled"] } } },
+      { $group: { _id: "$assignedDriver", count: { $sum: 1 } } },
+    ]);
+    const counts = new Map(workloads.map((item) => [String(item._id), item.count]));
+    return drivers.map((driver) => ({ ...driver.toFrontendObject(), deliveries: counts.get(String(driver._id)) || 0 }));
   }
 
   /**
@@ -48,9 +53,11 @@ class DriverService {
    * Create a new driver profile
    */
   async createDriver(data) {
+    validate(validateCreateDriver(data));
     let user;
     if (data.userId) {
       user = await User.findById(data.userId);
+      if (!user) throw ApiError.notFound("User account not found; no driver profile was created.");
     } else if (data.email) {
       user = await User.findOne({ email: String(data.email).trim().toLowerCase() });
     }
@@ -101,6 +108,7 @@ class DriverService {
    * Update driver profile details
    */
   async updateDriver(driverId, updates) {
+    validate(validateUpdateDriver(updates));
     const allowed = ["vehicle", "zone", "phone", "licenseNumber", "vehicleType"];
     const payload = {};
     for (const key of allowed) {
@@ -136,6 +144,7 @@ class DriverService {
       throw ApiError.notFound("Driver not found");
     }
 
+    if (requestedStatus !== null && requestedStatus !== undefined) validate(validateDriverStatus({ status: requestedStatus }));
     let nextStatus = requestedStatus;
     if (!nextStatus) {
       nextStatus = driver.status === "Available" ? "On route" : "Available";

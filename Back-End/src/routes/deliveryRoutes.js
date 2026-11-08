@@ -5,6 +5,7 @@ const authorize = require("../middleware/authorize");
 const validateRequest = require("../middleware/validateRequest");
 const {
   validateCreateDelivery,
+  validateUpdateDelivery,
   validateAssignDriver,
 } = require("../validators/deliveryValidator");
 
@@ -49,7 +50,7 @@ router.patch(
   deliveryController.assignDriver
 );
 
-router.patch("/:id", authenticate, authorize("administrator", "logistics", "merchant", "customer"), deliveryController.updateDelivery);
+router.patch("/:id", authenticate, authorize("administrator", "logistics", "merchant", "customer"), validateRequest(validateUpdateDelivery), deliveryController.updateDelivery);
 
 // Cancellation
 router.delete("/:id", authenticate, deliveryController.cancelDelivery);
