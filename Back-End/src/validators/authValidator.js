@@ -28,9 +28,10 @@ function validateRegister(data = {}) {
   // Prevent privilege escalation in public registration
   const privilegedRoles = ["administrator", "logistics", "driver"];
   if (role && privilegedRoles.includes(role)) {
+    const roleLabel = { administrator: "System Administrator", logistics: "Logistics Manager / Operations Staff", driver: "Delivery Driver / Courier" }[role];
     errors.push({
       field: "role",
-      message: "Privileged accounts (administrator, logistics, driver) cannot be self-registered. Contact an administrator.",
+      message: `Privileged accounts require administrator approval. Ask an administrator to create your ${roleLabel} account in Team & access (role: ${role}), then use Sign in. Public signup cannot grant staff privileges.`,
     });
   }
 

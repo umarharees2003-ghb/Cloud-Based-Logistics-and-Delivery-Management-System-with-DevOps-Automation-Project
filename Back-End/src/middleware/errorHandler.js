@@ -12,7 +12,7 @@ function errorHandler(err, req, res, next) {
       field: el.path,
       message: el.message,
     }));
-    error = ApiError.unprocessable("Validation failed", errors);
+    error = ApiError.unprocessable(errors.map(({ field, message }) => `${field}: ${message}`).join(" "), errors);
   }
 
   // Handle Mongoose Duplicate Key Error

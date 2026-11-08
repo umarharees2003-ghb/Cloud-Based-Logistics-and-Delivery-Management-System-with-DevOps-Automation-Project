@@ -124,3 +124,23 @@ Work is developed on `routeflow-v2` in logical database, backend, frontend, DevO
 - Staff signup rejected: bootstrap an administrator, then provision through Team & access or the administrator API.
 - Frontend-only Compose in `Front-End/` lacks the backend network; use the root Compose file for the full stack.
 - Dependency audit: frontend and backend production dependencies passed the latest local audit. Six low-severity findings remain in the Jest/deepmerge development dependency chain; npm's proposed fix downgrades Jest across major versions and was not forced.
+
+## Create a local Logistics Manager / Operations Staff account
+
+The original signup dropdown retains all five roles. Selecting logistics on public signup gives an explicit Role error explaining administrator approval; it never grants staff access.
+
+If you already have an administrator account, the quickest UI flow is: Sign in as System Administrator -> Team & access -> Create account -> enter name/email/initial password -> select `logistics` -> Create user -> Sign out. Then choose Logistics Manager / Operations Staff on Sign in, enter the new credentials, and the original Operations dashboard opens automatically. Deliveries, New delivery, Fleet management and Analytics & reports are available; administrator-only user management remains forbidden.
+
+Alternatively, use the local administrator-approved helper, which prompts for passwords without storing them in files or command arguments:
+
+```powershell
+Set-Location C:\DEvops\routeflow-v2
+docker compose up -d --build frontend backend mongodb
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\New-LogisticsAccount.ps1 -Email logistics.local@routeflow.test
+```
+
+Enter an **existing active administrator's** email/password, then choose and confirm a new manager password (8+ characters). The helper authenticates the administrator, calls the existing protected `/api/users` endpoint with `role: logistics`, and refuses to overwrite an existing email. It only connects to the local backend. On success, open http://localhost:8080 -> Sign in -> choose Logistics Manager / Operations Staff -> email `logistics.local@routeflow.test` -> use the manager password you chose. The account is stored in MongoDB; normal login issues a JWT with role `logistics`.
+
+If there is no administrator yet, first run the explicit administrator bootstrap documented in Accounts and permissions above; it requires your chosen email and a unique password of at least 12 characters. Then run this helper. No default staff password or public privilege grant is provided. This session tests bootstrap/provisioning using an isolated database; it does not create a staff account in your existing database without your administrator credentials.
+
+For a standalone local backend, set ADMIN_EMAIL, ADMIN_PASSWORD, LOGISTICS_EMAIL and LOGISTICS_PASSWORD temporarily in the process environment and run `npm.cmd run provision:logistics` from Back-End. Optional LOGISTICS_NAME and LOCAL_API_URL (loopback only) are supported. Clear password environment variables afterwards.

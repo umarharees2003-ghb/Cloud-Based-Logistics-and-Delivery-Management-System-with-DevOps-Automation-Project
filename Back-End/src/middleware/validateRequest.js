@@ -6,7 +6,7 @@ function validateRequest(validatorFn, source = "body") {
     const errors = validatorFn(data);
 
     if (errors && errors.length > 0) {
-      return next(ApiError.unprocessable("Validation failed", errors));
+      return next(ApiError.unprocessable(errors.map(({ field, message }) => `${field}: ${message}`).join(" "), errors));
     }
 
     next();

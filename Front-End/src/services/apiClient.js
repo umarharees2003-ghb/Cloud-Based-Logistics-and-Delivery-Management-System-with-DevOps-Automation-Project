@@ -36,9 +36,14 @@ export async function apiRequest(endpoint, options = {}) {
       window.dispatchEvent(new Event("routeflow:unauthorized"));
     }
     const errorData = await response.json().catch(() => ({}));
-    const message = errorData.message || errorData.error?.message || `Request failed with status ${response.status}`;
+    const fields = Array.isArray(errorData.errors) ? errorData.errors.filter((item) => item && typeof item.message === "string") : [];
+    const labels = { name: "Full name", fullName: "Full name", email: "Work email", password: "Password", confirmPassword: "Confirm password", role: "Role", roleId: "Role" };
+    const message = fields.length
+      ? fields.map(({ field, message }) => `${labels[field] || field || "Field"}: ${message}`).join(" ")
+      : errorData.message || errorData.error?.message || `Request failed with status ${response.status}`;
     const error = new Error(message);
     error.status = response.status;
+    error.fields = fields;
     throw error;
   }
 
