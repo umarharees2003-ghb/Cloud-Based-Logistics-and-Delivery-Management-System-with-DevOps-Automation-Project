@@ -1,44 +1,18 @@
-# Multi-Stage Production Dockerfile for Routeflow Backend
-# Stage 1: Build & Dependencies
-FROM node:22-alpine AS build
-
+# Production dependencies are installed once and copied into a clean runtime.
+FROM node:22-alpine AS dependencies
 WORKDIR /app
-
-# Install build dependencies
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --ignore-scripts --no-audit --no-fund
 
-# Copy application code
-COPY . .
-
-# Stage 2: Production Runtime
 FROM node:22-alpine AS production
-
 WORKDIR /app
-
-# Set production environment
-ENV NODE_ENV=production
-ENV PORT=5000
-
-# Install production dependencies only
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
-
-# Copy application source from build stage
-COPY --from=build /app/src ./src
-COPY --from=build /app/scripts ./scripts
-
-# Create logs directory with node user permissions
-RUN mkdir -p /app/logs && chown -R node:node /app
-
-# Use non-root node user for security
+ENV NODE_ENV=production PORT=5000
+COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --chown=node:node package.json package-lock.json ./
+COPY --chown=node:node src ./src
+COPY --chown=node:node scripts ./scripts
 USER node
-
 EXPOSE 5000
-
-# Health check using native Node.js HTTP call to readiness endpoint
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5000/api/health/ready', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
-
+HEALTHCHECK --interval=20s --timeout=5s --start-period=15s --retries=3 \
+  CMD node -e "const request=require('http').get('http://127.0.0.1:5000/api/health/ready',response=>{response.resume();process.exit(response.statusCode===200?0:1)});request.on('error',()=>process.exit(1));request.setTimeout(3000,()=>request.destroy());"
 CMD ["node", "src/server.js"]
-

@@ -9,7 +9,7 @@ scrape_configs:
       - targets: ["backend:5000"]
         labels:
           app: "routeflow"
-          environment: "production"
+          deployment: "compose"
           group: "78"
 
   - job_name: "prometheus"

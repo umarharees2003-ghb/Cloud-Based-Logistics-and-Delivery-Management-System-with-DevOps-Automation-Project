@@ -13,3 +13,8 @@ coverage
 .artifacts
 playwright-report
 test-results
+
+tests
+cypress
+playwright.config.js
+cypress.config.js
