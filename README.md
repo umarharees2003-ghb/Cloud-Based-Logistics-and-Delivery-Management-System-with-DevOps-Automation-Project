@@ -71,7 +71,7 @@ npm.cmd ci
 npm.cmd run dev
 ```
 
-Vite runs on port 5173 and proxies `/api` to localhost:5000. To use the Docker backend on 5001, set `$env:ROUTEFLOW_API_TARGET='http://localhost:5001'` before starting Vite. `VITE_API_BASE_URL` is an optional build-time override; default `/api` is appropriate behind Nginx. Use `npm.cmd` on PowerShell systems that block npm.ps1.
+Vite runs on port 5173 and proxies `/api` to the Docker backend at `http://127.0.0.1:5001` by default. Override the target with `ROUTEFLOW_API_TARGET=http://127.0.0.1:<port>` when needed. Compose allows the Vite origins `http://localhost:5173` and `http://127.0.0.1:5173` by default; production deployments should override `FRONTEND_ORIGIN` with only their explicit HTTPS frontend origins. `VITE_API_BASE_URL` is an optional build-time override; default `/api` is appropriate behind Nginx. Use `npm.cmd` on PowerShell systems that block npm.ps1.
 
 ## Tests and verification
 

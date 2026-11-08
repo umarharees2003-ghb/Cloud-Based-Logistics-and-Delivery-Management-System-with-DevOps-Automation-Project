@@ -3,6 +3,31 @@ const app = require("../src/app");
 const User = require("../src/models/User");
 
 describe("Authentication API", () => {
+  describe("CORS", () => {
+    test.each(["http://localhost:5173", "http://127.0.0.1:5173"])(
+      "allows configured Vite origin %s",
+      async (origin) => {
+        const res = await request(app)
+          .options("/api/auth/login")
+          .set("Origin", origin)
+          .set("Access-Control-Request-Method", "POST");
+
+        expect(res.statusCode).toBe(204);
+        expect(res.headers["access-control-allow-origin"]).toBe(origin);
+      }
+    );
+
+    test("rejects an origin outside the explicit allowlist", async () => {
+      const res = await request(app)
+        .options("/api/auth/login")
+        .set("Origin", "https://unauthorized.example.test")
+        .set("Access-Control-Request-Method", "POST");
+
+      expect(res.statusCode).toBe(403);
+      expect(res.headers["access-control-allow-origin"]).toBeUndefined();
+    });
+  });
+
   describe("POST /api/auth/register", () => {
     it("should register a new customer successfully", async () => {
       const res = await request(app).post("/api/auth/register").send({
@@ -165,4 +190,3 @@ describe("Authentication API", () => {
     });
   });
 });
-

@@ -28,7 +28,14 @@ export async function apiRequest(endpoint, options = {}) {
     ...options.headers,
   };
 
-  const response = await fetch(url, { ...options, headers });
+  let response;
+  try {
+    response = await fetch(url, { ...options, headers });
+  } catch {
+    const error = new Error("Unable to connect to the Routeflow service. Check that the API is running.");
+    error.status = 0;
+    throw error;
+  }
 
   if (!response.ok) {
     if (response.status === 401 && token && !endpoint.startsWith("/auth/login")) {

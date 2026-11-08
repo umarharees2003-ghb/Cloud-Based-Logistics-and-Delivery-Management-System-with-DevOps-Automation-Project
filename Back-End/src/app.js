@@ -8,6 +8,7 @@ const environment = require("./config/environment");
 const logger = require("./config/logger");
 const notFound = require("./middleware/notFound");
 const errorHandler = require("./middleware/errorHandler");
+const ApiError = require("./utils/ApiError");
 
 // Route imports
 const healthRoutes = require("./routes/healthRoutes");
@@ -60,10 +61,10 @@ app.use(
 const corsOptions = {
   origin: (origin, callback) => {
     // Allow non-browser requests or matching configured origins
-    if (!origin || environment.frontendOrigins.includes(origin) || !environment.isProduction) {
+    if (!origin || environment.frontendOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
+      callback(ApiError.forbidden("Origin not allowed by CORS"));
     }
   },
   credentials: true,
@@ -126,4 +127,3 @@ app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;
-
