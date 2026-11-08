@@ -94,7 +94,7 @@ export default function DeliveriesPage({
             onChange={(event) => setStatusFilter(event.target.value)}
             aria-label="Filter by delivery status"
           >
-            {["All statuses", "Pending", "In transit", "Out for delivery", "Delivered", "Delayed"].map(
+            {["All statuses", "Pending", "In transit", "Out for delivery", "Delivered", "Delayed", "Cancelled"].map(
               (status) => (
                 <option key={status}>{status}</option>
               )

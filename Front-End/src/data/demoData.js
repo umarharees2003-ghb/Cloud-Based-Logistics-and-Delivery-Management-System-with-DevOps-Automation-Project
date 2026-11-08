@@ -1,24 +1,3 @@
-export const shipments = [
-  { id: "SHP-10482", customer: "Miriam Patel", route: "Newark → Brooklyn", status: "In transit", eta: "14:30", city: "New York, NY" },
-  { id: "SHP-10481", customer: "James Liu", route: "Jersey City → Queens", status: "Delayed", eta: "14:45", city: "Queens, NY" },
-  { id: "SHP-10480", customer: "Olivia Martin", route: "Newark → Manhattan", status: "Delivered", eta: "13:12", city: "New York, NY" },
-  { id: "SHP-10479", customer: "Ethan Brooks", route: "Elizabeth → Hoboken", status: "Out for delivery", eta: "15:10", city: "Hoboken, NJ" },
-  { id: "SHP-10478", customer: "Sophia Chen", route: "Newark → Staten Island", status: "Pending", eta: "16:00", city: "Staten Island, NY" },
-  { id: "SHP-10477", customer: "Noah Williams", route: "Newark → Manhattan", status: "In transit", eta: "14:38", city: "New York, NY" },
-  { id: "SHP-10476", customer: "Ava Thompson", route: "Brooklyn → Manhattan", status: "Delivered", eta: "12:48", city: "New York, NY" },
-  { id: "SHP-10475", customer: "Lucas Garcia", route: "Jersey City → Bronx", status: "Out for delivery", eta: "15:25", city: "Bronx, NY" },
-];
-
-export const shipmentVolume = [
-  { day: "Wed", count: 42 },
-  { day: "Thu", count: 58 },
-  { day: "Fri", count: 51 },
-  { day: "Sat", count: 31 },
-  { day: "Sun", count: 26 },
-  { day: "Mon", count: 57 },
-  { day: "Tue", count: 72 },
-];
-
 export const userRoles = [
   { id: "administrator", label: "System Administrator", workspace: "Administration" },
   { id: "logistics", label: "Logistics Manager / Operations Staff", workspace: "Operations" },
@@ -67,6 +46,7 @@ export const roleSidebarGroups = {
       items: [
         { id: "overview", label: "My day", icon: "⌂" },
         { id: "deliveries", label: "My deliveries", icon: "▤" },
+        { id: "driver-profile", label: "My profile", icon: "U" },
         { id: "driver-route", label: "Route plan", icon: "↗" },
       ],
     },
@@ -93,31 +73,6 @@ export const roleSidebarGroups = {
     },
   ],
 };
-
-export const initialOrders = [
-  { id: "SHP-10482", customer: "Miriam Patel", route: "Newark → Brooklyn", status: "In transit", eta: "14:30", driver: "Alex Lee" },
-  { id: "SHP-10481", customer: "James Liu", route: "Jersey City → Queens", status: "Delayed", eta: "14:45", driver: "Morgan Reed" },
-  { id: "SHP-10480", customer: "Olivia Martin", route: "Newark → Manhattan", status: "Delivered", eta: "13:12", driver: "Sam Rivera" },
-  { id: "SHP-10479", customer: "Ethan Brooks", route: "Elizabeth → Hoboken", status: "Out for delivery", eta: "15:10", driver: "Alex Lee" },
-  { id: "SHP-10478", customer: "Sophia Chen", route: "Newark → Staten Island", status: "Pending", eta: "16:00", driver: "Unassigned" },
-  { id: "SHP-10477", customer: "Noah Williams", route: "Newark → Manhattan", status: "In transit", eta: "14:38", driver: "Jamie Park" },
-  { id: "SHP-10476", customer: "Ava Thompson", route: "Brooklyn → Manhattan", status: "Delivered", eta: "12:48", driver: "Sam Rivera" },
-  { id: "SHP-10475", customer: "Lucas Garcia", route: "Jersey City → Bronx", status: "Out for delivery", eta: "15:25", driver: "Taylor Morgan" },
-];
-
-export const initialDrivers = [
-  { name: "Alex Lee", initials: "AL", vehicle: "Van · V-204", zone: "Brooklyn", status: "On route", deliveries: 8 },
-  { name: "Morgan Reed", initials: "MR", vehicle: "Van · V-118", zone: "Queens", status: "On route", deliveries: 6 },
-  { name: "Sam Rivera", initials: "SR", vehicle: "Truck · T-032", zone: "Manhattan", status: "Available", deliveries: 0 },
-  { name: "Jamie Park", initials: "JP", vehicle: "Van · V-081", zone: "Newark", status: "On route", deliveries: 5 },
-];
-
-export const overviewMetrics = [
-  { label: "Total deliveries", value: "1,284", delta: "+12.8%", icon: "↗", tone: "mint" },
-  { label: "In transit", value: "342", delta: "28 drivers active", icon: "⇢", tone: "blue" },
-  { label: "Delivered today", value: "876", delta: "96.8% on time", icon: "✓", tone: "purple" },
-  { label: "Needs attention", value: "12", delta: "4 delayed orders", icon: "!", tone: "orange" },
-];
 
 export const welcomeFeatures = [
   {
@@ -256,49 +211,6 @@ export const rolePhotoCollections = {
         title: "Delivery handoff",
         detail: "Shipments headed to your customers",
       },
-    ],
-  },
-};
-
-export const secondarySectionsContent = {
-  devops: {
-    title: "DevOps automation",
-    description: "Monitor the health of your delivery platform and deployment pipeline.",
-    cards: [
-      ["CI pipeline", "All checks passing", "Last run 8 minutes ago"],
-      ["Deployment", "Production is up to date", "Release v1.8.2"],
-      ["Application health", "Healthy", "99.98% uptime this month"],
-      ["Monitoring", "Active", "Logs and alerts are connected"],
-    ],
-  },
-  team: {
-    title: "Team & access",
-    description: "Manage the people who keep your deliveries moving.",
-    cards: [
-      ["Operations team", "12 members", "Dispatch and support"],
-      ["Drivers", "4 active profiles", "Manage from Fleet management"],
-      ["Administrator", "Demo account", "Full workspace access"],
-      ["Access policy", "Role-based access", "Permissions are configurable"],
-    ],
-  },
-  integrations: {
-    title: "Integrations",
-    description: "Connect the tools your logistics operation relies on.",
-    cards: [
-      ["Maps & routing", "Connected", "Route optimization enabled"],
-      ["Email notifications", "Connected", "Delivery updates enabled"],
-      ["Cloud storage", "Ready to connect", "Store proof of delivery"],
-      ["API access", "Available", "Manage keys in settings"],
-    ],
-  },
-  settings: {
-    title: "Workspace settings",
-    description: "Configure your Routeflow workspace preferences.",
-    cards: [
-      ["Organization", "Routeflow Logistics", "Company profile and service area"],
-      ["Notifications", "Email and in-app", "Choose which events to receive"],
-      ["Security", "Two-step verification", "Protect administrator accounts"],
-      ["Preferences", "America / New York", "Time zone and display options"],
     ],
   },
 };

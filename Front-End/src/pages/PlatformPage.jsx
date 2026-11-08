@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { apiRequest } from "../services/apiClient";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import OrderModal from "../components/common/OrderModal";
@@ -38,12 +39,20 @@ export default function PlatformPage({ account, onSignOut }) {
     resetFilters,
   } = useDeliveries();
 
-  const { drivers, toggleDriverStatus } = useFleet();
+  const { drivers, toggleDriverStatus, error: fleetError, reload: reloadFleet } = useFleet(["administrator", "logistics"].includes(role.id));
+  const handleMutation = (action) => async (...args) => {
+    try { return await action(...args); }
+    catch (error) { setNotice(error.message); }
+  };
 
+  const [driverProfile, setDriverProfile] = useState(null);
+  useEffect(() => {
+    if (role.id === "driver") apiRequest("/drivers/me/profile").then((res) => setDriverProfile(res.data)).catch((error) => setNotice(error.message));
+  }, [role.id]);
   const allItems = navigationGroups.flatMap((group) => group.items);
   const activeItem = allItems.find((item) => item.id === activeSection) ?? allItems[0];
   const accountFirstName = getAccountFirstName(account?.name);
-  const assignedDemoOrders = orders.filter((order) => order.driver === drivers[0]?.name);
+  const assignedDemoOrders = orders;
   const todayLabel = getTodayLabel();
 
   async function handleCreateOrder(event) {
@@ -61,8 +70,8 @@ export default function PlatformPage({ account, onSignOut }) {
 
   function getNavigationCount(item) {
     if (item.id === "deliveries" && role.id === "driver") return assignedDemoOrders.length;
-    if (item.id === "deliveries" && role.id === "administrator") return item.badge;
-    if (item.id === "customer-history") return Math.min(orders.length, 3);
+    if (item.id === "deliveries" && role.id === "administrator") return orders.length;
+    if (item.id === "customer-history") return orders.length;
     if (["deliveries", "merchant-orders"].includes(item.id)) return orders.length;
     return null;
   }
@@ -72,9 +81,11 @@ export default function PlatformPage({ account, onSignOut }) {
       return (
         <DriverPage
           activeSection={activeSection}
+          profile={driverProfile}
+          account={account}
           assignedDemoOrders={assignedDemoOrders}
-          onStatusChange={updateOrderStatus}
-          onDriverChange={assignDriver}
+          onStatusChange={handleMutation(updateOrderStatus)}
+          onDriverChange={handleMutation(assignDriver)}
           onNavigate={setActiveSection}
         />
       );
@@ -86,8 +97,8 @@ export default function PlatformPage({ account, onSignOut }) {
           activeSection={activeSection}
           account={account}
           orders={orders}
-          onStatusChange={updateOrderStatus}
-          onDriverChange={assignDriver}
+          onStatusChange={handleMutation(updateOrderStatus)}
+          onDriverChange={handleMutation(assignDriver)}
         />
       );
     }
@@ -101,8 +112,8 @@ export default function PlatformPage({ account, onSignOut }) {
           activeSection={activeSection}
           account={account}
           orders={orders}
-          onStatusChange={updateOrderStatus}
-          onDriverChange={assignDriver}
+          onStatusChange={handleMutation(updateOrderStatus)}
+          onDriverChange={handleMutation(assignDriver)}
         />
       );
     }
@@ -111,8 +122,8 @@ export default function PlatformPage({ account, onSignOut }) {
       return (
         <OverviewPage
           orders={orders}
-          onStatusChange={updateOrderStatus}
-          onDriverChange={assignDriver}
+          onStatusChange={handleMutation(updateOrderStatus)}
+          onDriverChange={handleMutation(assignDriver)}
           role={role}
           onNavigate={setActiveSection}
           drivers={drivers}
@@ -129,8 +140,8 @@ export default function PlatformPage({ account, onSignOut }) {
           setSearch={setSearch}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
-          onStatusChange={updateOrderStatus}
-          onDriverChange={assignDriver}
+          onStatusChange={handleMutation(updateOrderStatus)}
+          onDriverChange={handleMutation(assignDriver)}
           onResetFilters={resetFilters}
           drivers={drivers}
         />
@@ -138,7 +149,7 @@ export default function PlatformPage({ account, onSignOut }) {
     }
 
     if (activeSection === "fleet") {
-      return <FleetPage drivers={drivers} onToggleDriverStatus={toggleDriverStatus} />;
+      return <FleetPage onSaved={reloadFleet} drivers={drivers} onToggleDriverStatus={handleMutation(toggleDriverStatus)} />;
     }
 
     if (activeSection === "analytics") {
@@ -180,8 +191,7 @@ export default function PlatformPage({ account, onSignOut }) {
 
         <main className="ops-page">
           <p className="role-demo-banner" role="note">
-            Demo workspace for <strong>{role.label}</strong>. These role-based screens are a
-            preview, not real access control.
+            Workspace for <strong>{role.label}</strong>. Access is secured by your account permissions.
           </p>
 
           <div className="ops-page-heading">
@@ -196,15 +206,15 @@ export default function PlatformPage({ account, onSignOut }) {
               <p>
                 {activeSection === "overview"
                   ? role.id === "driver"
-                    ? "Your sample route and delivery assignments for today."
+                    ? "Your route and delivery assignments for today."
                     : role.id === "customer"
-                      ? "Track a sample shipment and review its latest status."
+                      ? "Track your shipment and review its latest status."
                       : role.id === "merchant"
-                        ? "Your sample shipments and delivery activity."
+                        ? "Your shipments and delivery activity."
                         : "Here’s what’s happening across your delivery network today."
                   : activeSection === "deliveries"
                     ? role.id === "driver"
-                      ? "Review your sample assignments and update delivery status."
+                      ? "Review your assignments and update delivery status."
                       : "Create, search, assign and track every delivery in one place."
                     : activeSection === "fleet"
                       ? "See driver availability and manage your active routes."
@@ -239,13 +249,13 @@ export default function PlatformPage({ account, onSignOut }) {
             </div>
           </div>
 
-          <NoticeBanner message={notice} onDismiss={() => setNotice("")} />
+          <NoticeBanner message={notice || fleetError} onDismiss={() => setNotice("")} />
 
           {renderPageContent()}
 
           <footer className="ops-footer">
             <span>© 2026 Routeflow Logistics</span>
-            <span>Demo workspace · Data is stored in this session only</span>
+            <span>Routeflow workspace · Changes saved to your account</span>
           </footer>
         </main>
       </div>
@@ -262,7 +272,7 @@ export default function PlatformPage({ account, onSignOut }) {
       <OrderModal
         isOpen={showOrderForm}
         onClose={() => setShowOrderForm(false)}
-        onSubmit={handleCreateOrder}
+        onSubmit={handleMutation(handleCreateOrder)}
         isMerchant={role.id === "merchant"}
       />
     </div>

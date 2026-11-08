@@ -9,7 +9,7 @@ export function useDeliveries() {
 
   useEffect(() => {
     let active = true;
-    deliveryService
+    const load = () => deliveryService
       .getDeliveries()
       .then((items) => {
         if (active && Array.isArray(items)) {
@@ -19,7 +19,10 @@ export function useDeliveries() {
       .catch((error) => {
         if (active) setNotice(error.message || "Unable to load deliveries.");
       });
+    load();
+    window.addEventListener("routeflow:deliveries-changed", load);
     return () => {
+      window.removeEventListener("routeflow:deliveries-changed", load);
       active = false;
     };
   }, []);
@@ -51,16 +54,16 @@ export function useDeliveries() {
   }
 
   async function updateOrderStatus(id, status) {
-    await deliveryService.updateStatus(id, status);
+    const saved = await deliveryService.updateStatus(id, status);
     setOrders((current) =>
-      current.map((order) => (order.id === id ? { ...order, status } : order))
+      current.map((order) => (order.id === id ? saved : order))
     );
   }
 
   async function assignDriver(id, driver) {
-    await deliveryService.assignDriver(id, driver);
+    const saved = await deliveryService.assignDriver(id, driver);
     setOrders((current) =>
-      current.map((order) => (order.id === id ? { ...order, driver } : order))
+      current.map((order) => (order.id === id ? saved : order))
     );
   }
 

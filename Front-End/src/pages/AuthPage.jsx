@@ -5,6 +5,7 @@ import { authService } from "../services/authService";
 
 export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
   const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
   const isSignup = mode === "signup";
 
   async function handleSubmit(event) {
@@ -16,6 +17,8 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
       return;
     }
 
+    setBusy(true);
+    setNotice("");
     try {
       let userAccount;
       if (isSignup) {
@@ -34,9 +37,9 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
         });
       }
       onSuccess(userAccount);
-    } catch {
-      setNotice("An error occurred during authentication. Please try again.");
-    }
+    } catch (error) {
+      setNotice(error.message || "Unable to reach the authentication service.");
+    } finally { setBusy(false); }
   }
 
   function changeMode(nextMode) {
@@ -117,7 +120,7 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
           )}
 
           <label className="auth-field">
-            <span>{isSignup ? "I am a…" : "Choose a role to preview"}</span>
+            <span>{isSignup ? "I am a…" : "Your account role"}</span>
             <select name="roleId" defaultValue="" required>
               <option value="" disabled>
                 Select your role
@@ -168,14 +171,14 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
           )}
 
           <p className="auth-demo-note">
-            Demo only: accounts are not saved, and role screens do not enforce real permissions.
+            Customer and merchant accounts can sign up. Staff accounts require an administrator.
           </p>
 
           <p className="auth-notice" role="alert" aria-live="polite">
             {notice}
           </p>
 
-          <button className="primary-btn auth-submit" type="submit">
+          <button className="primary-btn auth-submit" type="submit" disabled={busy}>
             {isSignup ? "Create account" : "Sign in"}
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path

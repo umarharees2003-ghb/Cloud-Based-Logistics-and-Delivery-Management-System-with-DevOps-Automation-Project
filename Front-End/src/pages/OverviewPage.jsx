@@ -2,7 +2,8 @@ import React from "react";
 import OrdersTable from "../components/OrdersTable";
 import RolePhotoGallery from "../components/RolePhotoGallery";
 import MetricCard from "../components/common/MetricCard";
-import { overviewMetrics, shipmentVolume } from "../data/demoData";
+import { useReports } from "../hooks/useReports";
+import NoticeBanner from "../components/common/NoticeBanner";
 
 export default function OverviewPage({
   orders = [],
@@ -12,20 +13,19 @@ export default function OverviewPage({
   onNavigate,
   drivers,
 }) {
-  const deliveryCount = orders.length;
+  const { report, error } = useReports(orders);
+  const overviewMetrics = report?.metrics || [];
+  const shipmentVolume = report?.weeklyVolume || [];
 
   return (
     <>
+      <NoticeBanner message={error} />
       <section className="ops-metrics" aria-label="Delivery summary">
         {overviewMetrics.map((metric) => (
           <MetricCard
             key={metric.label}
             label={metric.label}
-            value={
-              metric.label === "Total deliveries"
-                ? deliveryCount.toLocaleString()
-                : metric.value
-            }
+            value={metric.value}
             delta={metric.delta}
             icon={metric.icon}
             tone={metric.tone}
@@ -55,7 +55,7 @@ export default function OverviewPage({
               <div className="chart-column" key={day}>
                 <span className="chart-count">{count}</span>
                 <div className="chart-track">
-                  <span style={{ height: `${(count / 72) * 100}%` }} />
+                  <span style={{ height: `${(count / Math.max(1, ...shipmentVolume.map((item) => item.count))) * 100}%` }} />
                 </div>
                 <span className="chart-day">{day}</span>
               </div>
@@ -67,10 +67,10 @@ export default function OverviewPage({
           <div className="ops-card-heading">
             <div>
               <h3>Live network</h3>
-              <p>Active routes across your service area</p>
+              <p>Service area illustration - See deliveries for route status</p>
             </div>
             <span className="live-pill">
-              <i /> Live
+              <i /> Network
             </span>
           </div>
           <div className="ops-map">
@@ -89,9 +89,9 @@ export default function OverviewPage({
           <div className="route-summary">
             <span>
               <i className="legend-dot green-dot" />
-              28 active drivers
+              {report?.summary?.activeDrivers ?? 0} active drivers
             </span>
-            <span>18 routes</span>
+            <span>{orders.filter((order) => ["In transit", "Out for delivery"].includes(order.status)).length} routes</span>
           </div>
         </section>
       </div>

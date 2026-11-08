@@ -2,8 +2,13 @@ import { apiRequest } from "./apiClient.js";
 
 export const deliveryService = {
   async getDeliveries() {
-    const res = await apiRequest("/deliveries");
-    return Array.isArray(res.data) ? res.data : [];
+    const all = [];
+    for (let page = 1; ; page++) {
+      const res = await apiRequest(`/deliveries?limit=500&page=${page}`);
+      if (!Array.isArray(res.data)) throw new Error("Invalid delivery response.");
+      all.push(...res.data);
+      if (all.length >= res.total || res.data.length === 0) return all;
+    }
   },
 
   async createDelivery({ customer, pickup, dropoff, eta }) {

@@ -1,4 +1,5 @@
 import React from "react";
+import ProfileForm from "../components/common/ProfileForm";
 import OrdersTable from "../components/OrdersTable";
 import RolePhotoGallery from "../components/RolePhotoGallery";
 import MetricCard from "../components/common/MetricCard";
@@ -16,23 +17,24 @@ export default function MerchantPage({
         <div className="ops-card-heading">
           <div>
             <h3>Business profile</h3>
-            <p>Contact information for this sample merchant account.</p>
+            <p>Contact information for this merchant account.</p>
           </div>
         </div>
         <div className="secondary-grid">
           <article className="secondary-card">
             <span>Business contact</span>
-            <strong>{account?.name ? account.name.split("@")[0] : "Demo Merchant"}</strong>
+            <strong>{account?.name ? account.name.split("@")[0] : "Merchant"}</strong>
             <p>Business Client / Merchant</p>
           </article>
           <article className="secondary-card">
             <span>Account email</span>
             <strong>
-              {account?.name && account.name.includes("@") ? account.name : "Demo account"}
+              {account?.email || "--"}
             </strong>
             <p>Merchant contact</p>
           </article>
         </div>
+        <ProfileForm account={account} />
       </section>
     );
   }
@@ -44,8 +46,8 @@ export default function MerchantPage({
       <section className="ops-card recent-card">
         <div className="ops-card-heading">
           <div>
-            <h3>Sample shipments</h3>
-            <p>Example merchant orders. Create a shipment to try the local demo flow.</p>
+            <h3>Shipments</h3>
+            <p>Create a shipment to add it to your account.</p>
           </div>
         </div>
         <OrdersTable
@@ -63,9 +65,9 @@ export default function MerchantPage({
     <>
       <section className="ops-metrics" aria-label="Merchant shipment summary">
         <MetricCard
-          label="Sample shipments"
+          label="Shipments"
           value={orders.length}
-          delta="Across this demo account"
+          delta="Across your account"
         />
         <MetricCard
           label="In transit"
@@ -75,12 +77,12 @@ export default function MerchantPage({
         <MetricCard
           label="Delivered"
           value={deliveredCount}
-          delta="Completed sample orders"
+          delta="Completed orders"
         />
         <MetricCard
           label="Needs attention"
           value={orders.filter((order) => order.status === "Delayed").length}
-          delta="Sample delayed orders"
+          delta="Delayed orders"
         />
       </section>
 
@@ -89,8 +91,8 @@ export default function MerchantPage({
       <section className="ops-card recent-card">
         <div className="ops-card-heading">
           <div>
-            <h3>Recent sample shipments</h3>
-            <p>Example orders in the merchant workspace.</p>
+            <h3>Recent shipments</h3>
+            <p>Latest orders in your merchant workspace.</p>
           </div>
         </div>
         <OrdersTable

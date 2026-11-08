@@ -31,6 +31,10 @@ export async function apiRequest(endpoint, options = {}) {
   const response = await fetch(url, { ...options, headers });
 
   if (!response.ok) {
+    if (response.status === 401 && token && !endpoint.startsWith("/auth/login")) {
+      setStoredToken(null);
+      window.dispatchEvent(new Event("routeflow:unauthorized"));
+    }
     const errorData = await response.json().catch(() => ({}));
     const message = errorData.message || errorData.error?.message || `Request failed with status ${response.status}`;
     const error = new Error(message);

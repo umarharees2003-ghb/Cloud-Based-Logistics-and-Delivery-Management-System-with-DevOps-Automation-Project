@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { apiRequest } from "../services/apiClient";
 
 export default function Topbar({
   onToggleSidebar,
@@ -7,6 +8,15 @@ export default function Topbar({
   onSignOut,
   onNotice,
 }) {
+  const [health, setHealth] = useState("Checking service");
+  useEffect(() => { let active = true; apiRequest("/health/ready").then(() => { if (active) setHealth("Service connected"); }).catch(() => { if (active) setHealth("Service unavailable"); }); return () => { active = false; }; }, []);
+  async function notifications() {
+    try {
+      const res = await apiRequest("/notifications");
+      const items = res.data || [];
+      onNotice(items.length ? items.map((item) => `${item.title}: ${item.message}`).join(" | ") : "No notifications.");
+    } catch (error) { onNotice(error.message); }
+  }
   return (
     <header className="ops-topbar">
       <button
@@ -27,14 +37,14 @@ export default function Topbar({
       <div className="topbar-tools">
         <span className="system-status">
           <i />
-          All systems operational
+          {health}
         </span>
 
         <button
           className="notification-button"
           type="button"
           aria-label="Notifications"
-          onClick={() => onNotice("You are all caught up. No new notifications.")}
+          onClick={notifications}
         >
           ♧<i />
         </button>

@@ -71,7 +71,7 @@ export default function Sidebar({
           <p>Our logistics team is here to help.</p>
           <button
             type="button"
-            onClick={() => onNotice("Support request noted. Our team will be in touch.")}
+            onClick={() => onNotice("Contact your organization administrator for support. No support request has been sent.")}
           >
             Contact support <span>→</span>
           </button>

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import DeliveryDetails from "./common/DeliveryDetails";
 import StatusBadge from "./StatusBadge";
-import { initialDrivers } from "../data/demoData";
 import { getInitials } from "../utils/formatters";
 
 export default function OrdersTable({
@@ -10,8 +10,9 @@ export default function OrdersTable({
   compact = false,
   canAssignDriver = true,
   canUpdateStatus = true,
-  drivers = initialDrivers,
+  drivers = [],
 }) {
+  const [selected, setSelected] = useState(null);
   return (
     <div className="orders-table-wrap">
       <table className={`orders-table ${compact ? "compact-table" : ""}`}>
@@ -26,10 +27,11 @@ export default function OrdersTable({
           </tr>
         </thead>
         <tbody>
+          {!orders.length && <tr><td colSpan="6">No deliveries found.</td></tr>}
           {(orders || []).map((order) => (
             <tr key={order.id}>
               <td>
-                <strong className="order-id">{order.id}</strong>
+                <strong className="order-id" role="button" tabIndex={0} onClick={() => setSelected(order)} onKeyDown={(event) => { if (event.key === "Enter") setSelected(order); }}>{order.id}</strong>
                 <span className="order-type">Standard delivery</span>
               </td>
               <td>{order.customer}</td>
@@ -43,12 +45,12 @@ export default function OrdersTable({
                     </span>
                     <select
                       aria-label={`Assign driver for ${order.id}`}
-                      value={order.driver}
+                      value={order.assignedDriverId || "Unassigned"}
                       onChange={(event) => onDriverChange(order.id, event.target.value)}
                     >
                       <option>Unassigned</option>
                       {drivers.map((driver) => (
-                        <option key={driver.name}>{driver.name}</option>
+                        <option key={driver.id} value={driver.id} disabled={driver.status === "Unavailable"}>{driver.name}</option>
                       ))}
                     </select>
                   </label>
@@ -70,6 +72,7 @@ export default function OrdersTable({
                       <option>Out for delivery</option>
                       <option>Delivered</option>
                       <option>Delayed</option>
+                      <option>Cancelled</option>
                     </select>
                     <span aria-hidden="true">⌄</span>
                   </label>
@@ -82,6 +85,7 @@ export default function OrdersTable({
           ))}
         </tbody>
       </table>
+      {selected && <DeliveryDetails order={selected} onClose={() => setSelected(null)} onSaved={() => window.dispatchEvent(new Event("routeflow:deliveries-changed"))} />}
     </div>
   );
 }
