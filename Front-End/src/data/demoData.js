@@ -92,125 +92,69 @@ export const welcomeFeatures = [
   },
 ];
 
+// Licensed illustrative photography. Credits and source URLs: IMAGE_LICENSES.md.
+const logisticsPhotos = {
+  truck: {
+    image: "/images/logistics-truck.webp",
+    srcSet: "/images/logistics-truck-800.webp 800w, /images/logistics-truck.webp 1400w",
+    alt: "A white freight truck and trailer traveling on a highway at sunset",
+  },
+  warehouse: {
+    image: "/images/logistics-warehouse.webp",
+    srcSet: "/images/logistics-warehouse-800.webp 800w, /images/logistics-warehouse.webp 1400w",
+    alt: "Distribution warehouse with shelves of parcels and yellow storage bins",
+  },
+  port: {
+    image: "/images/logistics-port.webp",
+    srcSet: "/images/logistics-port-800.webp 800w, /images/logistics-port.webp 1400w",
+    alt: "Aerial view of colorful shipping containers and transport lanes at a port",
+  },
+};
+
 export const rolePhotoCollections = {
   administrator: {
     heading: "Your logistics network",
-    description: "A visual overview of the vehicles and facilities in your operation.",
+    description: "The people, transport links, and facilities behind every delivery.",
     photos: [
-      {
-        image: "/images/role-fleet.jpg",
-        alt: "Freight trucks travelling together on a delivery route",
-        title: "Fleet overview",
-        detail: "Vehicles moving across the network",
-      },
-      {
-        image: "/images/delivery-hub.jpg",
-        alt: "Distribution warehouse prepared for parcel dispatch",
-        title: "Distribution hubs",
-        detail: "Facilities supporting daily operations",
-      },
-      {
-        image: "/images/role-operations.jpg",
-        alt: "Courier loading parcels into a delivery van",
-        title: "Last-mile operations",
-        detail: "Deliveries from pickup to doorstep",
-      },
+      { ...logisticsPhotos.truck, title: "Fleet overview", detail: "Vehicles connecting the network" },
+      { ...logisticsPhotos.warehouse, title: "Distribution hubs", detail: "Facilities supporting daily operations" },
+      { ...logisticsPhotos.port, title: "Network handoffs", detail: "Connections between transport routes" },
     ],
   },
   logistics: {
     heading: "Today’s operations",
-    description: "See the vehicles, people, and facilities behind each delivery.",
+    description: "A closer look at the journey from dispatch to delivery.",
     photos: [
-      {
-        image: "/images/delivery-hub.jpg",
-        alt: "Warehouse team preparing parcels for delivery",
-        title: "Warehouse dispatch",
-        detail: "Orders ready for their next route",
-      },
-      {
-        image: "/images/role-operations.jpg",
-        alt: "Courier loading packages into a delivery van",
-        title: "Driver handoff",
-        detail: "Parcels moving from hub to route",
-      },
-      {
-        image: "/images/role-fleet.jpg",
-        alt: "Line of freight trucks on a logistics route",
-        title: "Active fleet",
-        detail: "Vehicles covering delivery zones",
-      },
+      { ...logisticsPhotos.warehouse, title: "Warehouse dispatch", detail: "Prepare orders for their next route" },
+      { ...logisticsPhotos.port, title: "Container coordination", detail: "Handoffs between transport networks" },
+      { ...logisticsPhotos.truck, title: "Active fleet", detail: "Vehicles connecting delivery regions" },
     ],
   },
   driver: {
     heading: "Out on the road",
-    description: "A quick look at your vehicle, parcel pickups, and delivery route.",
+    description: "Keep your next pickup, vehicle, and delivery route in focus.",
     photos: [
-      {
-        image: "/images/freight-truck.jpg",
-        alt: "Freight truck travelling along a country road",
-        title: "Your route",
-        detail: "Keep your next stop in view",
-      },
-      {
-        image: "/images/role-driver.jpg",
-        alt: "Courier handing over a parcel at a delivery van",
-        title: "Parcel handoff",
-        detail: "Confirm each collection and delivery",
-      },
-      {
-        image: "/images/role-fleet.jpg",
-        alt: "Freight trucks travelling through a delivery region",
-        title: "On the move",
-        detail: "Your workday, stop by stop",
-      },
+      { ...logisticsPhotos.truck, title: "Your route", detail: "Keep your next stop in view" },
+      { ...logisticsPhotos.warehouse, title: "Pickup preparation", detail: "Parcels ready for the next handoff" },
+      { ...logisticsPhotos.port, title: "Connected transport", detail: "The network behind every delivery" },
     ],
   },
   customer: {
     heading: "Your delivery, every step",
-    description: "From a parcel being prepared to its final handoff.",
+    description: "Follow your parcel from preparation to its final destination.",
     photos: [
-      {
-        image: "/images/role-merchant.jpg",
-        alt: "Merchant carefully sealing a parcel for shipping",
-        title: "Getting ready",
-        detail: "Your parcel is packed for pickup",
-      },
-      {
-        image: "/images/role-customer.jpg",
-        alt: "Customer receiving a parcel from a courier",
-        title: "On its way",
-        detail: "Follow your delivery as it moves",
-      },
-      {
-        image: "/images/role-operations.jpg",
-        alt: "Courier loading parcels into a delivery van",
-        title: "Final delivery",
-        detail: "The last stop is almost here",
-      },
+      { ...logisticsPhotos.warehouse, title: "Getting ready", detail: "Orders prepared for dispatch" },
+      { ...logisticsPhotos.truck, title: "On its way", detail: "Follow your delivery as it moves" },
+      { ...logisticsPhotos.port, title: "Connected journey", detail: "Every handoff brings it closer" },
     ],
   },
   merchant: {
     heading: "From your store to your customers",
-    description: "Follow the shipping journey from packing bench to delivery route.",
+    description: "Follow the shipping journey from preparation to delivery route.",
     photos: [
-      {
-        image: "/images/role-merchant.jpg",
-        alt: "Merchant preparing a packaged order for shipping",
-        title: "Pack an order",
-        detail: "Prepare customer orders for pickup",
-      },
-      {
-        image: "/images/delivery-hub.jpg",
-        alt: "Distribution center sorting outbound parcels",
-        title: "Dispatch and sort",
-        detail: "Keep outgoing shipments together",
-      },
-      {
-        image: "/images/role-driver.jpg",
-        alt: "Courier accepting a package for delivery",
-        title: "Delivery handoff",
-        detail: "Shipments headed to your customers",
-      },
+      { ...logisticsPhotos.warehouse, title: "Ready for dispatch", detail: "Keep outgoing orders together" },
+      { ...logisticsPhotos.port, title: "Connected distribution", detail: "Handoffs across the shipping network" },
+      { ...logisticsPhotos.truck, title: "On the road", detail: "Shipments headed to your customers" },
     ],
   },
 };

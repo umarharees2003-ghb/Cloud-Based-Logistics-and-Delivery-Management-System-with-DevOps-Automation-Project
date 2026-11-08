@@ -17,7 +17,7 @@ export default function RolePhotoGallery({ roleId }) {
       <div className="role-photo-grid">
         {collection.photos.map((photo) => (
           <article className="role-photo-card" key={photo.title}>
-            <img src={photo.image} alt={photo.alt} loading="lazy" decoding="async" />
+            <img src={photo.image} srcSet={photo.srcSet} sizes="(max-width: 420px) 90vw, (max-width: 760px) 45vw, 30vw" alt={photo.alt} width="720" height="480" loading="lazy" decoding="async" />
             <div className="role-photo-card-copy">
               <h3>{photo.title}</h3>
               <p>{photo.detail}</p>

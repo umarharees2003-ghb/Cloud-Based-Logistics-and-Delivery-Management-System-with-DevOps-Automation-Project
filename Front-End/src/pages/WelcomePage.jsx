@@ -83,39 +83,45 @@ export default function WelcomePage({ onAuth }) {
             </div>
           </div>
 
-          <aside className="welcome-preview" aria-label="Routeflow operations preview">
+          <aside className="welcome-preview" aria-label="Routeflow platform illustration">
             <div className="preview-orbit orbit-one" />
             <div className="preview-orbit orbit-two" />
             <div className="preview-card">
               <div className="preview-heading">
                 <span className="preview-indicator" />
-                <span>NETWORK OVERVIEW</span>
-                <span className="preview-live">LIVE</span>
+                <span>PLATFORM OVERVIEW</span>
+                <span className="preview-live">PREVIEW</span>
               </div>
               <div className="preview-map">
                 <img
                   className="preview-image"
-                  src="/images/freight-truck.jpg"
-                  alt="Freight truck carrying a shipment on a rural road"
+                  src="/images/logistics-truck.webp"
+                  srcSet="/images/logistics-truck-800.webp 800w, /images/logistics-truck.webp 1400w"
+                  sizes="(max-width: 760px) 90vw, 440px"
+                  alt="A white freight truck and trailer traveling on a highway at sunset"
+                  width="1400"
+                  height="2099"
+                  fetchPriority="high"
+                  decoding="async"
                 />
-                <span className="preview-image-caption">Newark to Brooklyn · In transit</span>
+                <span className="preview-image-caption">Connected routes, from hub to doorstep</span>
               </div>
               <div className="preview-summary">
                 <div>
-                  <span>Deliveries today</span>
-                  <strong>1,284</strong>
+                  <span>Connected workspaces</span>
+                  <strong>5 roles</strong>
                 </div>
                 <div>
-                  <span>On-time rate</span>
-                  <strong>96.8%</strong>
+                  <span>Delivery visibility</span>
+                  <strong>End to end</strong>
                 </div>
               </div>
             </div>
             <div className="preview-note">
               <span className="preview-check">✓</span>
               <span>
-                <strong>Route optimized</strong>
-                <small>Saving 18 minutes</small>
+                <strong>Every handoff connected</strong>
+                <small>Dispatch to delivery</small>
               </span>
             </div>
           </aside>
@@ -131,9 +137,14 @@ export default function WelcomePage({ onAuth }) {
             <p>Keep every handoff in view, from the first parcel scan to the final delivery.</p>
           </div>
           <img
-            src="/images/delivery-hub.jpg"
-            alt="A busy distribution warehouse filled with parcels ready to ship"
+            src="/images/logistics-warehouse.webp"
+            srcSet="/images/logistics-warehouse-800.webp 800w, /images/logistics-warehouse.webp 1400w"
+            sizes="(max-width: 760px) 90vw, 600px"
+            alt="Distribution warehouse with shelves of parcels and yellow storage bins"
+            width="1400"
+            height="934"
             loading="lazy"
+            decoding="async"
           />
         </section>
 

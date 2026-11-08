@@ -49,6 +49,16 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
 
   return (
     <main className="auth-shell">
+      <img
+        className="auth-scene"
+        src="/images/logistics-port.webp"
+        srcSet="/images/logistics-port-800.webp 800w, /images/logistics-port.webp 1400w"
+        sizes="(max-width: 760px) 100vw, 1120px"
+        alt="Aerial view of shipping containers and transport lanes at a port"
+        width="1400"
+        height="933"
+        decoding="async"
+      />
       <header className="auth-topbar">
         <a
           className="brand home-brand"

@@ -25,7 +25,7 @@ export default function AnalyticsPage({ orders = [] }) {
         <MetricCard
           label="Average delivery time"
           value={report?.performance?.averageDeliveryTime || "--"}
-          delta="No timing measurements available"
+          delta={report?.performance?.measuredDeliveries > 0 ? `${report.performance.measuredDeliveries} measured deliveries` : "No timing measurements available"}
         />
         <MetricCard
           label="Customer satisfaction"
