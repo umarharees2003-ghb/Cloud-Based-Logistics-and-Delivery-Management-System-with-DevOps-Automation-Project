@@ -91,6 +91,7 @@ const deliverySchema = new mongoose.Schema(
     weight: {
       type: Number,
       default: 1.0,
+      min: [0, "Weight cannot be negative"],
     },
     priority: {
       type: String,
@@ -131,6 +132,10 @@ const deliverySchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+deliverySchema.index({ sender: 1, createdAt: -1 });
+deliverySchema.index({ merchant: 1, createdAt: -1 });
+deliverySchema.index({ assignedDriver: 1, status: 1 });
 
 // Auto-populate route if missing before saving
 deliverySchema.pre("save", function (next) {

@@ -6,10 +6,8 @@ function generateTrackingNumber(prefix = "RF-TRK") {
   return `${prefix}-${timestampPart}${randomPart}`;
 }
 
-function generateDeliveryId(count = 0) {
-  // Generates consistent IDs like SHP-10490, matching existing frontend demo data
-  const base = 10500 + count;
-  return `SHP-${base}`;
+function generateDeliveryId() {
+  return `SHP-${crypto.randomBytes(8).toString("hex").toUpperCase()}`;
 }
 
 module.exports = {
