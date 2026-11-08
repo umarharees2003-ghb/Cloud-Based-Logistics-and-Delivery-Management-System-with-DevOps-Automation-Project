@@ -17,6 +17,8 @@ async function connectDatabase(uri = environment.mongodbUri) {
     };
 
     const connection = await mongoose.connect(uri, options);
+    // Add declared indexes without dropping existing indexes or data.
+    await Promise.all(Object.values(mongoose.models).map((model) => model.createIndexes()));
     isConnected = true;
     logger.info("MongoDB connected successfully to %s", uri.replace(/\/\/.*@/, "//***@"));
 

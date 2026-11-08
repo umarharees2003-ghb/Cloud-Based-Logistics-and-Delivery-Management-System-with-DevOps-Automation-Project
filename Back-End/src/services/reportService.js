@@ -74,8 +74,8 @@ class ReportService {
     const filter = await deliveryScope(user);
 
     const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
+    sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 6);
+    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
 
     const aggregation = await Delivery.aggregate([
       {
@@ -97,9 +97,9 @@ class ReportService {
     const volume = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dayOfWeekIndex = d.getDay() + 1; // MongoDB $dayOfWeek is 1-indexed (1=Sun)
-      const dayLabel = dayNames[d.getDay()];
+      d.setUTCDate(d.getUTCDate() - i);
+      const dayOfWeekIndex = d.getUTCDay() + 1; // MongoDB $dayOfWeek is 1-indexed (1=Sun)
+      const dayLabel = dayNames[d.getUTCDay()];
 
       const match = aggregation.find((item) => item._id === dayOfWeekIndex);
       volume.push({

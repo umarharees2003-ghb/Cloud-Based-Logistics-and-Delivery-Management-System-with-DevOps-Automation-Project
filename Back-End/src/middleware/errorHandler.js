@@ -26,6 +26,10 @@ function errorHandler(err, req, res, next) {
     error = ApiError.badRequest(`Invalid resource identifier for field '${err.path}'`);
   }
 
+  else if (err.name === "VersionError") {
+    error = ApiError.conflict("Delivery changed during this request. Reload and try again.");
+  }
+
   // Handle SyntaxError in request body
   else if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
     error = ApiError.badRequest("Malformed JSON in request body");

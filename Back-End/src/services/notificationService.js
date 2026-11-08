@@ -1,5 +1,6 @@
 const Notification = require("../models/Notification");
 const logger = require("../config/logger");
+const ApiError = require("../utils/ApiError");
 
 class NotificationService {
   /**
@@ -36,7 +37,7 @@ class NotificationService {
 
     const items = await Notification.find(filter)
       .sort({ createdAt: -1 })
-      .limit(parseInt(limit, 10));
+      .limit(Math.min(100, Math.max(1, parseInt(limit, 10) || 20)));
 
     const unreadCount = await Notification.countDocuments({
       recipient: userId,
@@ -58,7 +59,8 @@ class NotificationService {
       { isRead: true },
       { new: true }
     );
-    return notification ? notification.toFrontendObject() : null;
+    if (!notification) throw ApiError.notFound("Notification not found.");
+    return notification.toFrontendObject();
   }
 
   /**

@@ -74,7 +74,7 @@ function validateAssignDriver(data = {}) {
   const driverName = data.driver || data.driverName;
   const driverId = data.driverId;
 
-  if (!driverName && !driverId) {
+  if ((!driverName && !driverId) || (driverName && typeof driverName !== "string") || (driverId && !/^[0-9a-fA-F]{24}$/.test(String(driverId)))) {
     errors.push({ field: "driver", message: "Driver name or driver ID is required." });
   }
 
