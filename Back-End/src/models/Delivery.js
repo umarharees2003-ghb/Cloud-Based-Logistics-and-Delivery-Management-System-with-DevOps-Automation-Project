@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const statusHistorySchema = new mongoose.Schema(
   {
+    eventType: { type: String, enum: ["created", "status", "assigned", "unassigned", "updated"], default: "status" },
     status: {
       type: String,
       required: true,
@@ -47,6 +48,7 @@ const deliverySchema = new mongoose.Schema(
       type: String,
       required: [true, "Customer name is required"],
       trim: true,
+      maxlength: 100,
       index: true,
     },
     sender: {
@@ -63,11 +65,13 @@ const deliverySchema = new mongoose.Schema(
       type: String,
       required: [true, "Pickup location is required"],
       trim: true,
+      maxlength: 500,
     },
     dropoff: {
       type: String,
       required: [true, "Drop-off destination is required"],
       trim: true,
+      maxlength: 500,
     },
     route: {
       type: String,
@@ -76,16 +80,19 @@ const deliverySchema = new mongoose.Schema(
     recipientName: {
       type: String,
       trim: true,
+      maxlength: 100,
       default: "",
     },
     recipientPhone: {
       type: String,
       trim: true,
+      maxlength: 40,
       default: "",
     },
     packageDescription: {
       type: String,
       trim: true,
+      maxlength: 1000,
       default: "Standard parcel",
     },
     weight: {
@@ -126,6 +133,10 @@ const deliverySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    assignedAt: { type: Date, default: null },
+    pickedUpAt: { type: Date, default: null },
+    deliveredAt: { type: Date, default: null },
+    cancelledAt: { type: Date, default: null },
     statusHistory: [statusHistorySchema],
   },
   {
@@ -134,6 +145,8 @@ const deliverySchema = new mongoose.Schema(
   }
 );
 
+deliverySchema.index({ createdBy: 1, createdAt: -1 });
+deliverySchema.index({ deliveredAt: -1, status: 1 });
 deliverySchema.index({ sender: 1, createdAt: -1 });
 deliverySchema.index({ merchant: 1, createdAt: -1 });
 deliverySchema.index({ assignedDriver: 1, status: 1 });
@@ -153,6 +166,8 @@ deliverySchema.methods.toFrontendObject = function () {
     deliveryId: this.deliveryId,
     trackingNumber: this.trackingNumber,
     customer: this.customer,
+    senderId: this.sender ? this.sender.toString() : null,
+    merchantId: this.merchant ? this.merchant.toString() : null,
     route: this.route || `${this.pickup} → ${this.dropoff}`,
     pickup: this.pickup,
     dropoff: this.dropoff,
@@ -162,8 +177,14 @@ deliverySchema.methods.toFrontendObject = function () {
     assignedDriverId: this.assignedDriver ? this.assignedDriver.toString() : null,
     priority: this.priority,
     city: this.city,
+    recipientName: this.recipientName,
+    recipientPhone: this.recipientPhone,
     packageDescription: this.packageDescription,
     weight: this.weight,
+    assignedAt: this.assignedAt,
+    pickedUpAt: this.pickedUpAt,
+    deliveredAt: this.deliveredAt,
+    cancelledAt: this.cancelledAt,
     statusHistory: this.statusHistory,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
