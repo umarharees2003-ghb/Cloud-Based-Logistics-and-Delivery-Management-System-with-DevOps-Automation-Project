@@ -8,6 +8,7 @@ const environment = {
   nodeEnv: process.env.NODE_ENV || "development",
   isProduction: process.env.NODE_ENV === "production",
   isTest: process.env.NODE_ENV === "test",
+  trustProxyHops: Math.max(0, parseInt(process.env.TRUST_PROXY_HOPS || "0", 10) || 0),
   port: parseInt(process.env.PORT || "5000", 10),
   mongodbUri:
     process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/routeflow",

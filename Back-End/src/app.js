@@ -22,6 +22,7 @@ const deliveryController = require("./controllers/deliveryController");
 
 const app = express();
 app.disable("x-powered-by");
+app.set("trust proxy", environment.trustProxyHops);
 
 // 1. Prometheus Metrics Setup
 const register = new client.Registry();

@@ -11,6 +11,16 @@ async function api(path, options = {}) {
 }
 (async () => {
   await api("/health/ready");
+  // Nginx must replace incoming forwarded IPs so clients cannot choose a rate-limit identity.
+  const remaining = [];
+  for (const address of ["198.51.100.10", "203.0.113.20"]) {
+    const response = await fetch(`${origin}/api/auth/login`, { method: "POST", headers: { "Content-Type": "application/json", "X-Forwarded-For": address }, body: JSON.stringify({ email: "proxy-check@example.test", password: "InvalidPassword123!" }) });
+    assert.equal(response.status, 401);
+    remaining.push(Number(response.headers.get("ratelimit-remaining")));
+  }
+  assert.equal(remaining[1], remaining[0] - 1, "Spoofed forwarded headers must share the real client rate limit");
+  console.log("PASS: proxied readiness and forwarded-header rate-limit isolation.");
+  if (process.argv.includes("--proxy-only")) return;
   const stamp = crypto.randomBytes(8).toString("hex");
   const password = crypto.randomBytes(24).toString("base64url");
   const email = `smoke-${stamp}@example.test`;

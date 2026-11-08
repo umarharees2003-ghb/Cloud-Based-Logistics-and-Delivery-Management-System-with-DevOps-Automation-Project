@@ -4,7 +4,7 @@ React 18 + Vite frontend, Express REST API, MongoDB/Mongoose persistence, JWT au
 
 ## Run with Docker (PowerShell)
 
-Requirements: Docker Desktop running with Linux containers, Docker Compose, and free ports 8080 and 5000. In this workspace port 5000 belongs to an existing Node service; the ignored local `.env` intentionally sets `BACKEND_PORT=5001`, as approved by the user. Nginx always uses `backend:5000` internally.
+Requirements: Docker Desktop running with Linux containers, Docker Compose, and free ports 8080 and 5000. In this workspace port 5000 belongs to an existing Node service; the ignored local `.env` intentionally sets `BACKEND_PORT=5001`, as approved by the user. Nginx always uses `backend:5000` internally. The backend host port binds to loopback. Nginx replaces incoming forwarded client-IP headers and the Docker backend explicitly trusts one proxy hop for authentication rate limiting; local standalone backend defaults to zero trusted hops.
 
 ```powershell
 Set-Location C:\DEvops\routeflow-v2
