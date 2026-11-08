@@ -1,92 +1,79 @@
 name: Routeflow Continuous Integration
-
 on:
   push:
-    branches: [main, master, UmarHarees-Routeflow, dinura]
+    branches: [main, master, UmarHarees-Routeflow, dinura, routeflow-v2]
   pull_request:
     branches: [main, master, UmarHarees-Routeflow, dinura]
-
+permissions:
+  contents: read
 jobs:
   backend-test:
-    name: Backend Lint, Test & Coverage
+    name: Backend integration tests
     runs-on: ubuntu-latest
-
-    services:
-      mongodb:
-        image: mongo:6-jammy
-        ports:
-          - 27017:27017
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "npm"
+          cache: npm
           cache-dependency-path: Back-End/package-lock.json
-
-      - name: Install Backend Dependencies
-        working-directory: ./Back-End
-        run: npm ci
-
-      - name: Run Backend Tests
-        working-directory: ./Back-End
+      - run: npm ci
+        working-directory: Back-End
+      - run: npm run test:coverage
+        working-directory: Back-End
         env:
           NODE_ENV: test
-          MONGODB_URI: mongodb://127.0.0.1:27017/routeflow_test
-          JWT_SECRET: ci_github_actions_test_jwt_secret_routeflow_2026
-        run: npm test
-
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: Back-End/coverage
   frontend-build:
-    name: Frontend Build & Verification
+    name: Frontend build and browser integration
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "npm"
-          cache-dependency-path: Front-End/package-lock.json
-
-      - name: Install Frontend Dependencies
-        working-directory: ./Front-End
-        run: npm ci
-
-      - name: Build Frontend Application
-        working-directory: ./Front-End
-        run: npm run build
-
+          cache: npm
+          cache-dependency-path: |
+            Front-End/package-lock.json
+            Back-End/package-lock.json
+      - run: npm ci
+        working-directory: Back-End
+      - run: npm ci
+        working-directory: Front-End
+      - run: npm run build
+        working-directory: Front-End
+      - run: npx playwright install --with-deps chromium
+        working-directory: Front-End
+      - run: npm test
+        working-directory: Front-End
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-artifacts
+          path: |
+            Front-End/.artifacts/*.png
+            Front-End/.artifacts/playwright
   docker-build:
-    name: Docker Image Build Verification
+    name: Docker health, proxy and persistence smoke test
     needs: [backend-test, frontend-build]
     runs-on: ubuntu-latest
-
+    env:
+      JWT_SECRET: ci_only_compose_secret_never_use_in_production_2026
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Backend Docker Image
-        uses: docker/build-push-action@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          context: ./Back-End
-          file: ./Back-End/Dockerfile
-          push: false
-          tags: routeflow/backend:latest
-
-      - name: Build Frontend Docker Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./Front-End
-          file: ./Front-End/Dockerfile
-          push: false
-          tags: routeflow/frontend:latest
+          node-version: 22
+      - uses: docker/setup-buildx-action@v3
+      - run: docker compose up -d --build --wait frontend backend mongodb
+      - run: node scripts/docker-smoke.cjs
+      - if: failure()
+        run: docker compose logs --no-color --tail=100
+      - if: always()
+        run: docker compose down
