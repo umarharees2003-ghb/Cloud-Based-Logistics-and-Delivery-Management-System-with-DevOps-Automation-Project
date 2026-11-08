@@ -15,20 +15,20 @@ describe("Routeflow Logistics End-to-End Suite", () => {
     cy.contains("Welcome back");
     cy.get("select[name='roleId']").should("be.visible");
     cy.get("select[name='roleId']").select("administrator");
-    cy.get("input[name='email']").type("admin@routeflow.io");
-    cy.get("input[name='password']").type("AdminRouteflow2026!");
+    cy.get("input[name='email']").type(Cypress.env("ADMIN_EMAIL"));
+    cy.get("input[name='password']").type(Cypress.env("ADMIN_PASSWORD"), { log: false });
     cy.get("button[type='submit']").click();
 
     // Verify platform workspace loads
     cy.contains("Routeflow Logistics");
-    cy.contains("Demo workspace for System Administrator");
+    cy.contains("Workspace for System Administrator");
   });
 
   it("switches between workspace views: Deliveries and Fleet", () => {
     cy.get("button").contains("Sign in").click();
     cy.get("select[name='roleId']").select("administrator");
-    cy.get("input[name='email']").type("admin@routeflow.io");
-    cy.get("input[name='password']").type("AdminRouteflow2026!");
+    cy.get("input[name='email']").type(Cypress.env("ADMIN_EMAIL"));
+    cy.get("input[name='password']").type(Cypress.env("ADMIN_PASSWORD"), { log: false });
     cy.get("button[type='submit']").click();
 
     // Navigate to Deliveries

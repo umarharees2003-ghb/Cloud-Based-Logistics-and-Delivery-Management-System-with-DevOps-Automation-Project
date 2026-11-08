@@ -4,8 +4,11 @@ const Delivery = require("../src/models/Delivery");
 const Driver = require("../src/models/Driver");
 const User = require("../src/models/User");
 
+const { generateToken } = require("../src/utils/generateToken");
 describe("Dashboard & Reports API", () => {
+  let token;
   beforeEach(async () => {
+    token = generateToken(await User.create({ name: "Report Admin", email: "reports@example.com", password: "Password123!", role: "administrator" }));
     const driverUser = await User.create({
       name: "Driver One",
       email: "d1@example.com",
@@ -51,7 +54,7 @@ describe("Dashboard & Reports API", () => {
 
   describe("GET /api/dashboard/summary", () => {
     it("should return accurate dashboard metrics based on real database records", async () => {
-      const res = await request(app).get("/api/dashboard/summary");
+      const res = await request(app).get("/api/dashboard/summary").set("Authorization", `Bearer ${token}`);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.success).toBe(true);
@@ -66,7 +69,7 @@ describe("Dashboard & Reports API", () => {
 
   describe("GET /api/reports/overview", () => {
     it("should return weekly volume and performance metrics", async () => {
-      const res = await request(app).get("/api/reports/overview");
+      const res = await request(app).get("/api/reports/overview").set("Authorization", `Bearer ${token}`);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.success).toBe(true);
@@ -77,7 +80,7 @@ describe("Dashboard & Reports API", () => {
 
   describe("GET /api/dashboard/fleet", () => {
     it("should return active fleet information", async () => {
-      const res = await request(app).get("/api/dashboard/fleet");
+      const res = await request(app).get("/api/dashboard/fleet").set("Authorization", `Bearer ${token}`);
 
       expect(res.statusCode).toBe(200);
       expect(res.body.success).toBe(true);

@@ -217,6 +217,7 @@ describe("Delivery Management API", () => {
         dropoff: "Hoboken",
         status: "In transit",
         driverName: "Sam Rivera",
+        assignedDriver: driverRecord._id,
       });
       deliveryId = delivery.deliveryId;
     });
@@ -270,7 +271,9 @@ describe("Delivery Management API", () => {
       expect(res.statusCode).toBe(200);
       expect(res.body.data.trackingNumber).toBe("RF-TRK-99999");
       expect(res.body.data.status).toBe("Out for delivery");
-      expect(res.body.data.route).toBe("Warehouse A → Customer Home");
+      expect(res.body.data.route).toBeUndefined();
+      expect(res.body.data.pickup).toBeUndefined();
+      expect(res.body.data.dropoff).toBeUndefined();
       expect(res.body.data.customer).toBeUndefined(); // Safe public tracking: customer details not exposed
     });
 

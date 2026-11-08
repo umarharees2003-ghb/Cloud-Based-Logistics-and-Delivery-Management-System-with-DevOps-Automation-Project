@@ -1,0 +1,128 @@
+import { test, expect } from "@playwright/test";
+async function login(page, role) {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.locator("select[name=roleId]").selectOption(role);
+  await page.locator("input[name=email]").fill(`${role}@browser.test`);
+  await page.locator("input[name=password]").fill("BrowserPassword123!");
+  await page.locator("button[type=submit]").click();
+  await expect(page.locator(".ops-sidebar")).toBeVisible();
+}
+test("welcome and five-role login retain original layout", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Make every mile", { exact: false })).toBeVisible();
+  await page.screenshot({ path: ".artifacts/welcome.png", fullPage: true });
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.locator("select[name=roleId] option")).toHaveCount(6);
+  await page.screenshot({ path: ".artifacts/login.png", fullPage: true });
+});
+for (const role of ["administrator", "logistics", "driver", "customer", "merchant"]) {
+  test(`${role} opens trusted workspace, survives reload, and signs out`, async ({ page }) => {
+    await login(page, role);
+    await page.reload();
+    await expect(page.locator(".ops-sidebar")).toBeVisible();
+    await expect(page.locator(".role-demo-banner")).toContainText("Access is secured");
+    await page.screenshot({ path: `.artifacts/${role}.png`, fullPage: true });
+    if (role === "customer") await expect(page.getByText("No deliveries yet")).toBeVisible();
+    await page.locator(".sidebar-profile").click();
+    await expect(page.locator(".ops-sidebar")).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator(".ops-sidebar")).toHaveCount(0);
+  });
+}
+test("bad credentials never open a workspace", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.locator("select[name=roleId]").selectOption("administrator");
+  await page.locator("input[name=email]").fill("administrator@browser.test");
+  await page.locator("input[name=password]").fill("wrong-password");
+  await page.locator("button[type=submit]").click();
+  await expect(page.locator(".auth-notice")).toContainText("Invalid email or password");
+  await expect(page.locator(".ops-sidebar")).toHaveCount(0);
+});
+test("merchant creates, edits, tracks and cancels a persisted shipment", async ({ page }) => {
+  await login(page, "merchant");
+  await page.getByRole("button", { name: /^Shipments \d+$/ }).click();
+  await page.getByRole("button", { name: "New shipment", exact: false }).click();
+  await page.locator("input[name=customer]").fill("Browser Recipient");
+  await page.locator("input[name=pickup]").fill("Colombo");
+  await page.locator("input[name=dropoff]").fill("Kandy");
+  await page.getByRole("button", { name: "Create shipment", exact: true }).click();
+  await expect(page.getByRole("cell", { name: "Browser Recipient", exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: /^Shipments \d+$/ }).click();
+  await page.locator(".order-id").first().click();
+  await expect(page.getByRole("dialog")).toContainText("RF-TRK-");
+  await page.locator("input[name=dropoff]").fill("Galle");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByRole("status")).toContainText("Delivery saved");
+  await page.getByRole("button", { name: "Cancel shipment" }).click();
+  await expect(page.getByRole("status")).toContainText("Delivery cancelled");
+  await page.getByRole("button", { name: "Close details" }).click();
+  await expect(page.getByRole("cell", { name: "Cancelled", exact: true })).toBeVisible();
+});
+test("API outage displays an error without fake registration", async ({ page }) => {
+  await page.route("**/api/auth/register", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ message: "Service unavailable" }) }));
+  await page.goto("/"); await page.getByRole("button", { name: "Sign up", exact: true }).click();
+  await page.locator("input[name=fullName]").fill("New Customer");
+  await page.locator("select[name=roleId]").selectOption("customer");
+  await page.locator("input[name=email]").fill("new@browser.test");
+  await page.locator("input[name=password]").fill("BrowserPassword123!");
+  await page.locator("input[name=confirmPassword]").fill("BrowserPassword123!");
+  await page.locator("button[type=submit]").click();
+  await expect(page.locator(".auth-notice")).toContainText("Service unavailable");
+  await expect(page.locator(".ops-sidebar")).toHaveCount(0);
+});
+
+test("staff creates fleet profile, assigns shipment, and driver completes it", async ({ page }) => {
+  await login(page, "administrator");
+  await page.getByRole("button", { name: "Fleet management", exact: true }).click();
+  await page.getByRole("button", { name: "Add driver", exact: true }).click();
+  await page.locator("input[name=name]").fill("Created Courier");
+  await page.locator("input[name=email]").fill("created-courier@browser.test");
+  await page.locator("input[name=password]").fill("BrowserPassword123!");
+  await page.locator("input[name=vehicle]").fill("Van V-202");
+  await page.locator("input[name=zone]").fill("Colombo");
+  await page.getByRole("button", { name: "Save driver", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Created Courier" })).toBeVisible();
+  await page.getByRole("button", { name: /^Deliveries \d+$/ }).click();
+  await page.getByRole("button", { name: "New delivery", exact: false }).click();
+  await page.locator("input[name=customer]").fill("Assigned Recipient");
+  await page.locator("input[name=pickup]").fill("Dispatch hub");
+  await page.locator("input[name=dropoff]").fill("Delivery point");
+  await page.getByRole("button", { name: "Create delivery", exact: true }).click();
+  const row = page.getByRole("row").filter({ has: page.getByRole("cell", { name: "Assigned Recipient", exact: true }) });
+  await row.locator(".driver-select-wrap select").selectOption({ label: "Created Courier" });
+  await expect(row.locator(".assigned-driver")).toContainText("Created Courier");
+  await row.locator(".status-select-wrap select").selectOption("In transit");
+  await expect(row.locator(".status-select-wrap select")).toHaveValue("In transit");
+  await page.locator(".sidebar-profile").click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.locator("select[name=roleId]").selectOption("driver");
+  await page.locator("input[name=email]").fill("created-courier@browser.test");
+  await page.locator("input[name=password]").fill("BrowserPassword123!");
+  await page.locator("button[type=submit]").click();
+  const assigned = page.getByRole("row").filter({ has: page.getByRole("cell", { name: "Assigned Recipient", exact: true }) });
+  await expect(assigned).toBeVisible();
+  await assigned.locator(".status-select-wrap select").selectOption("Delivered");
+  await expect(assigned.locator(".status-select-wrap select")).toHaveValue("Delivered");
+  await page.reload();
+  await expect(page.getByRole("row").filter({ has: page.getByRole("cell", { name: "Assigned Recipient", exact: true }) }).locator(".status-select-wrap select")).toHaveValue("Delivered");
+});
+test("public signup persists and profile update saves to MongoDB", async ({ page }) => {
+  await page.goto("/"); await page.getByRole("button", { name: "Sign up", exact: true }).click();
+  await page.locator("input[name=fullName]").fill("Registered Customer");
+  await page.locator("select[name=roleId]").selectOption("customer");
+  await page.locator("input[name=email]").fill("registered@browser.test");
+  await page.locator("input[name=password]").fill("BrowserPassword123!");
+  await page.locator("input[name=confirmPassword]").fill("BrowserPassword123!");
+  await page.locator("button[type=submit]").click();
+  await expect(page.locator(".ops-sidebar")).toBeVisible();
+  await page.getByRole("button", { name: "My profile", exact: true }).click();
+  await page.locator("input[name=phone]").fill("0771234567");
+  await page.getByRole("button", { name: "Save profile", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("Profile saved");
+  await page.reload();
+  await page.getByRole("button", { name: "My profile", exact: true }).click();
+  await expect(page.locator("input[name=phone]")).toHaveValue("0771234567");
+});
