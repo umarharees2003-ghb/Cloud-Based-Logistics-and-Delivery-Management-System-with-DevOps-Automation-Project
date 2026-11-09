@@ -159,3 +159,4 @@ The repository is integrated with **GitHub Actions** (`.github/workflows/ci.yml`
 ## 8. Group Contribution
 
 - **Group 78** — DevOps Engineering Coursework, Year 2026.
+
