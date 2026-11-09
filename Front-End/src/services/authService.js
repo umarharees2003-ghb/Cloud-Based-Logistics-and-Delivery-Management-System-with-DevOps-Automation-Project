@@ -18,7 +18,7 @@ export const authService = {
         method: "POST",
         body: JSON.stringify({
           email: email.trim(),
-          password: password || "AdminRouteflow2026!",
+          password: String(password || ""),
           roleId,
         }),
       });
@@ -34,12 +34,17 @@ export const authService = {
         token: res.token,
       };
     } catch (err) {
-      // In development, if backend endpoint is unavailable or returns an error,
-      // fallback to local demo credentials to avoid breaking standalone demo flow
-      console.warn("Backend auth unavailable, utilizing local session:", err.message);
+      // If the backend actively rejected the request (e.g. 401 Wrong Password, 400 Bad Request),
+      // rethrow so the UI displays the error instead of silently bypassing authentication.
+      if (err.status) {
+        throw err;
+      }
+      // If network is completely unreachable, fall back to local preview session with explicit warning
+      console.warn("Backend auth service unreachable; using local demo preview:", err.message);
       return {
         name: email.trim(),
         roleId: String(roleId),
+        isDemoFallback: true,
       };
     }
   },
@@ -56,8 +61,8 @@ export const authService = {
         body: JSON.stringify({
           name: fullName.trim(),
           email: email ? email.trim() : `${fullName.toLowerCase().replace(/\s+/g, ".")}@routeflow.io`,
-          password: password || "Password123!",
-          confirmPassword: confirmPassword || password || "Password123!",
+          password: String(password || ""),
+          confirmPassword: String(confirmPassword || password || ""),
           role: roleId || "customer",
         }),
       });
@@ -73,10 +78,14 @@ export const authService = {
         token: res.token,
       };
     } catch (err) {
-      console.warn("Backend registration unavailable, utilizing local session:", err.message);
+      if (err.status) {
+        throw err;
+      }
+      console.warn("Backend registration unreachable; using local demo preview:", err.message);
       return {
         name: fullName.trim(),
         roleId: String(roleId),
+        isDemoFallback: true,
       };
     }
   },

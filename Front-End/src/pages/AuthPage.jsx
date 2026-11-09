@@ -34,8 +34,8 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
         });
       }
       onSuccess(userAccount);
-    } catch {
-      setNotice("An error occurred during authentication. Please try again.");
+    } catch (err) {
+      setNotice(err.message || "An error occurred during authentication. Please check your credentials.");
     }
   }
 
@@ -168,7 +168,7 @@ export default function AuthPage({ mode, onModeChange, onBack, onSuccess }) {
           )}
 
           <p className="auth-demo-note">
-            Demo only: accounts are not saved, and role screens do not enforce real permissions.
+            Connected to Routeflow Cloud API. Select your role or use seeded role credentials.
           </p>
 
           <p className="auth-notice" role="alert" aria-live="polite">

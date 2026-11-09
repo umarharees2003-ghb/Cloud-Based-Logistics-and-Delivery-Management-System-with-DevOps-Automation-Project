@@ -22,6 +22,23 @@ describe("Authentication API", () => {
       expect(res.body.user.password).toBeUndefined(); // Never leak password hash
     });
 
+    it("should register a new merchant successfully", async () => {
+      const res = await request(app).post("/api/auth/register").send({
+        name: "Acme Retail Store",
+        email: "store.merchant@example.com",
+        password: "StorePassword123!",
+        confirmPassword: "StorePassword123!",
+        role: "merchant",
+      });
+
+      expect(res.statusCode).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.token).toBeDefined();
+      expect(res.body.user).toBeDefined();
+      expect(res.body.user.email).toBe("store.merchant@example.com");
+      expect(res.body.user.role).toBe("merchant");
+    });
+
     it("should reject duplicate email registrations", async () => {
       await User.create({
         name: "Existing User",

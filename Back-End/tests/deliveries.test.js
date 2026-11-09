@@ -278,4 +278,37 @@ describe("Delivery Management API", () => {
       expect(res.statusCode).toBe(404);
     });
   });
+
+  describe("Merchant Deliveries Scoping", () => {
+    it("should allow a merchant to create and retrieve their scoped deliveries", async () => {
+      const merchantUser = await User.create({
+        name: "Metro Retailers",
+        email: "merchant.scope.test@example.com",
+        password: "Password123!",
+        role: "merchant",
+      });
+      const merchantToken = generateToken(merchantUser);
+
+      const createRes = await request(app)
+        .post("/api/deliveries")
+        .set("Authorization", `Bearer ${merchantToken}`)
+        .send({
+          customer: "Metro Retailers",
+          pickup: "Distribution Center",
+          dropoff: "Outlet Store #4",
+          eta: "17:00",
+        });
+
+      expect(createRes.statusCode).toBe(201);
+      expect(createRes.body.success).toBe(true);
+
+      const listRes = await request(app)
+        .get("/api/deliveries")
+        .set("Authorization", `Bearer ${merchantToken}`);
+
+      expect(listRes.statusCode).toBe(200);
+      expect(listRes.body.data.length).toBeGreaterThanOrEqual(1);
+      expect(listRes.body.data.some((d) => d.customer === "Metro Retailers")).toBe(true);
+    });
+  });
 });
