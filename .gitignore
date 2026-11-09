@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+*/node_modules/
+package-lock.json.bak
+
+# Production and build outputs
+dist/
+*/dist/
+build/
+*/build/
+
+# Environment files
+.env
+*.env
+*/.env
+*.env.local
+.env.*.local
+!.env.example
+!*/.env.example
+
+# Logs
+logs/
+*/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage & reports
+coverage/
+*/coverage/
+.nyc_output/
+cypress/videos/
+cypress/screenshots/
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
