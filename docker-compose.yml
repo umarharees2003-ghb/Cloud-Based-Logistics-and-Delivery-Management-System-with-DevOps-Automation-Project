@@ -1,15 +1,104 @@
 services:
   frontend:
     build:
-      context: .
+      context: ./Front-End
       dockerfile: Dockerfile
     container_name: routeflow-frontend
     ports:
       - "8080:8080"
     restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - routeflow-network
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  backend:
+    build:
+      context: ./Back-End
+      dockerfile: Dockerfile
+    container_name: routeflow-backend
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/routeflow
+      - JWT_SECRET=super_secret_routeflow_jwt_key_academic_group_78_devops_2026
+      - JWT_EXPIRES_IN=7d
+      - FRONTEND_ORIGIN=http://localhost:8080,http://127.0.0.1:8080,http://frontend:8080
+      - LOG_LEVEL=info
+      - PROMETHEUS_METRICS_ENABLED=true
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - routeflow-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/health/ready', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  mongodb:
+    image: mongo:6-jammy
+    container_name: routeflow-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - routeflow-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: routeflow-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./Back-End/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - routeflow-network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:10.4.5
+    container_name: routeflow-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./Back-End/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - routeflow-network
+    depends_on:
+      - prometheus
+
+networks:
+  routeflow-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+

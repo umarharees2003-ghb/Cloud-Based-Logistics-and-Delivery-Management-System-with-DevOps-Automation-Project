@@ -1,0 +1,93 @@
+name: Routeflow Continuous Integration
+
+on:
+  push:
+    branches: [main, master, UmarHarees-Routeflow]
+  pull_request:
+    branches: [main, master, UmarHarees-Routeflow]
+
+jobs:
+  backend-test:
+    name: Backend Lint, Test & Coverage
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:6-jammy
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: Back-End/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: ./Back-End
+        run: npm ci
+
+      - name: Run Backend Tests
+        working-directory: ./Back-End
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://127.0.0.1:27017/routeflow_test
+          JWT_SECRET: ci_github_actions_test_jwt_secret_routeflow_2026
+        run: npm test
+
+  frontend-build:
+    name: Frontend Build & Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: Front-End/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./Front-End
+        run: npm ci
+
+      - name: Build Frontend Application
+        working-directory: ./Front-End
+        run: npm run build
+
+  docker-build:
+    name: Docker Image Build Verification
+    needs: [backend-test, frontend-build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Back-End
+          file: ./Back-End/Dockerfile
+          push: false
+          tags: routeflow/backend:latest
+
+      - name: Build Frontend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Front-End
+          file: ./Front-End/Dockerfile
+          push: false
+          tags: routeflow/frontend:latest
+
